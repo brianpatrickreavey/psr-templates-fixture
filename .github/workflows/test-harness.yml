@@ -1,0 +1,45 @@
+name: PSR Template Test Harness
+
+on:
+  repository_dispatch:
+    types: [test-harness-run]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          path: fixture
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y git
+          pip install pytest
+
+      - name: Create test branch
+        run: |
+          cd fixture
+          echo "Would create branch ci/${{ github.event.client_payload.run_id }}"
+
+      - name: Checkout templates repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.client_payload.templates_repo }}
+          ref: ${{ github.event.client_payload.templates_ref }}
+          path: templates
+
+      # TODO: Run arranger script to place templates
+      # TODO: Run commit generation script
+      # TODO: Run PSR
+      # TODO: Run pytest tests from templates
+      # TODO: Upload artifacts
+      # TODO: Clean up branch/tags
+      # TODO: Dispatch back to templates repo with result
+
+      - name: Run tests
+        run: |
+          cd templates
+          python -m pytest tests/ -v
