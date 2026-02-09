@@ -36,6 +36,7 @@ jobs:
           source /tmp/venv/bin/activate
           cd templates
           uv sync --group dev
+          uv pip install -e .
 
       - name: Run pre-PSR integration tests
         env:
@@ -118,6 +119,7 @@ jobs:
           source /tmp/venv/bin/activate
           cd templates
           uv sync --group dev
+          uv pip install -e .
 
       - name: Run post-PSR integration tests
         env:
