@@ -1,0 +1,98 @@
+name: PSR Template Test Harness
+
+on:
+  repository_dispatch:
+    types: [test-harness-run]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      UV_VENV: /tmp/venv
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          path: fixture
+
+      - name: Install dependencies
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          export PATH="$PATH:/root/.local/bin"
+          uv venv /tmp/venv
+          export UV_VENV=/tmp/venv
+
+      - name: Create test branch
+        run: |
+          cd fixture
+          git checkout -b ci/${{ github.event.client_payload.run_id }}
+
+      - name: Checkout templates repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.client_payload.templates_repo }}
+          ref: ${{ github.event.client_payload.templates_ref }}
+          path: templates
+
+      - name: Install dev dependencies
+        run: |
+          source /tmp/venv/bin/activate
+          cd templates
+          uv pip install --group dev
+
+      - name: Run arranger
+        run: |
+          cd fixture
+          python ../templates/arranger/run.py --templates-dir ../templates
+
+      - name: Generate test commits
+        run: |
+          cd fixture
+          python ../templates/tools/generate_commits.py .
+
+      - name: Show git log
+        run: |
+          cd fixture
+          git log --oneline
+
+      - name: Run PSR
+        uses: python-semantic-release/python-semantic-release@v10.5.3
+        with:
+          directory: ./fixture
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit: false
+          push: false
+          tag: false
+          vcs_release: false
+          no_operation_mode: true
+
+      - name: Clean up test branch
+        run: |
+          cd fixture
+          git checkout main
+          git branch -D ci/${{ github.event.client_payload.run_id }}
+
+      - name: Clean up test tags
+        run: |
+          cd fixture
+          git tag -l "v*" | xargs -r git tag -d
+
+      - name: Dispatch results back to templates repo
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.event.client_payload.templates_repo }}/dispatches \
+            -d '{
+              "event_type": "test-harness-complete",
+              "client_payload": {
+                "run_id": "${{ github.event.client_payload.run_id }}",
+                "status": "success",
+                "psr_version": "v10.5.3"
+              }
+            }'
+
+      - name: Run tests
+        run: |
+          cd templates
+          /tmp/venv/bin/python -m pytest tests/integration/ -v
