@@ -38,9 +38,11 @@ jobs:
           uv sync --group dev
 
       - name: Run pre-PSR integration tests
+        env:
+          UV_VENV: /tmp/venv
+          PATH: /root/.local/bin:$PATH
         run: |
-          cd templates
-          uv run pytest tests/integration/pre_psr/ -v
+          uv run --directory templates pytest tests/integration/pre_psr/ -v
 
   psr-execution:
     needs: pre-psr-tests
@@ -118,9 +120,11 @@ jobs:
           uv sync --group dev
 
       - name: Run post-PSR integration tests
+        env:
+          UV_VENV: /tmp/venv
+          PATH: /root/.local/bin:$PATH
         run: |
-          cd templates
-          uv run pytest tests/integration/post_psr/ -v
+          uv run --directory templates pytest tests/integration/post_psr/ -v
 
   cleanup:
     needs: [pre-psr-tests, psr-execution, post-psr-tests]
