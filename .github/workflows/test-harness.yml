@@ -1,4 +1,4 @@
-name: PSR Template Test Harness (Consolidated with Make)
+name: PSR Template Test Harness
 
 on:
   repository_dispatch:
