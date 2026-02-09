@@ -39,9 +39,8 @@ jobs:
 
       - name: Run pre-PSR integration tests
         run: |
-          source /tmp/venv/bin/activate
           cd templates
-          PYTHONPATH=. pytest tests/integration/pre_psr/ -v
+          uv run pytest tests/integration/pre_psr/ -v
 
   psr-execution:
     needs: pre-psr-tests
@@ -120,9 +119,8 @@ jobs:
 
       - name: Run post-PSR integration tests
         run: |
-          source /tmp/venv/bin/activate
           cd templates
-          PYTHONPATH=. pytest tests/integration/post_psr/ -v
+          uv run pytest tests/integration/post_psr/ -v
 
   cleanup:
     needs: [pre-psr-tests, psr-execution, post-psr-tests]
