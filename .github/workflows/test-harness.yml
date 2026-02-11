@@ -60,7 +60,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           commit: false
-          push: false
+          push: true
           tag: true
           vcs_release: true
           no_operation_mode: ${{ env.ACT == 'true' }}
