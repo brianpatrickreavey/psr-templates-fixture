@@ -59,7 +59,7 @@ jobs:
         with:
           repository: ${{ github.event.client_payload.templates_repo }}
           ref: ${{ github.event.client_payload.templates_ref }}
-          path: templates
+          path: repo
       - name: Run PSR
         continue-on-error: true
         uses: python-semantic-release/python-semantic-release@v10.5.3
