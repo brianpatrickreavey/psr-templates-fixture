@@ -11,6 +11,5 @@ runs:
     - name: Run PSR dry-run
       run: |
         source /tmp/venv/bin/activate
-        cd repo
         python-semantic-release --noop version > psr-dry-run.log
       shell: bash
