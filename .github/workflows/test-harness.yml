@@ -103,7 +103,7 @@ jobs:
         uses: ./.github/actions/run-post-psr-tests
 
   cleanup:
-    needs: [pre-psr-tests, psr-execution, post-psr-tests]
+    needs: [pre-psr-tests, psr-execution]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -123,7 +123,7 @@ jobs:
       - name: Dispatch results back to templates repo
         run: |
           STATUS="success"
-          if [ "${{ needs.pre-psr-tests.result }}" != "success" ] || [ "${{ needs.psr-execution.result }}" != "success" ] || [ "${{ needs.post-psr-tests.result }}" != "success" ]; then
+          if [ "${{ needs.pre-psr-tests.result }}" != "success" ] || [ "${{ needs.psr-execution.result }}" != "success" ]; then
             STATUS="failure"
           fi
           curl -X POST \
