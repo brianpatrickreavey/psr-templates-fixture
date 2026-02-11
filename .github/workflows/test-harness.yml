@@ -112,6 +112,7 @@ jobs:
       - name: Clean up test tags
         run: |
           git tag -l "v*" | xargs -r git tag -d || true
+          git tag -l "v*" | xargs -r git push --delete origin || true
 
       - name: Dispatch results back to templates repo
         run: |
