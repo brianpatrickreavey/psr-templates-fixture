@@ -12,69 +12,46 @@ jobs:
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          export PATH="$PATH:/root/.local/bin"
-          uv venv /tmp/venv
-          export UV_VENV=/tmp/venv
-
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
       - name: Create test branch
-        run: |
-          git checkout -b ci/${{ github.event.client_payload.run_id }}
-
+        uses: ./.github/actions/create-test-branch
       - name: Checkout templates repo
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.client_payload.templates_repo }}
           ref: ${{ github.event.client_payload.templates_ref }}
-          path: templates
-
+          path: repo
       - name: Install dev dependencies
-        run: |
-          source /tmp/venv/bin/activate
-          cd templates
-          uv sync --group dev
-          uv pip install -e .
-
+        uses: ./.github/actions/install-dev-deps
       - name: Run pre-PSR integration tests
-        env:
-          UV_VENV: /tmp/venv
-          PATH: /root/.local/bin:$PATH
+        uses: ./.github/actions/run-pre-psr-tests
+      - name: Run arranger
+        uses: ./.github/actions/run-arranger
+      - name: Generate test commits
+        uses: ./.github/actions/run-generate-commits
+      - name: Configure git for push
         run: |
-          uv run --directory templates pytest tests/integration/pre_psr/ -v
+          cd repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Push test branch
+        run: |
+          cd repo
+          git push origin HEAD:ci/${{ github.event.client_payload.run_id }}
 
   psr-execution:
     needs: pre-psr-tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout fixture repo
-        uses: actions/checkout@v4
-
-      - name: Switch to test branch
-        run: |
-          git checkout ci/${{ github.event.client_payload.run_id }}
-
       - name: Checkout templates repo
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.client_payload.templates_repo }}
-          ref: ${{ github.event.client_payload.templates_ref }}
-          path: templates
-
-      - name: Run arranger
-        run: |
-          python templates/arranger/run.py --templates-dir templates
-
-      - name: Generate test commits
-        run: |
-          python templates/tools/generate_commits.py .
-
-      - name: Show git log
-        run: |
-          git log --oneline
-
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
       - name: Run PSR
         continue-on-error: true
         uses: python-semantic-release/python-semantic-release@v10.5.3
@@ -84,49 +61,33 @@ jobs:
           push: false
           tag: true
           vcs_release: true
-          no_operation_mode: false
+          no_operation_mode: ${{ env.ACT == 'true' }}
 
   post-psr-tests:
     needs: psr-execution
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
-      PSR_VALIDATE_REAL: false
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
-
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
       - name: Switch to test branch
         run: |
-          git checkout ci/${{ github.event.client_payload.run_id }}
-
+          git checkout ci/${{ github.event.client_payload.run_id }} || git checkout -b ci/${{ github.event.client_payload.run_id }}
       - name: Checkout templates repo
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.client_payload.templates_repo }}
-          ref: ${{ github.event.client_payload.templates_ref }}
-          path: templates
-
-      - name: Install dependencies
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          export PATH="$PATH:/root/.local/bin"
-          uv venv /tmp/venv
-          export UV_VENV=/tmp/venv
-
+          ref: ci/${{ github.event.client_payload.run_id }}
+          path: repo
       - name: Install dev dependencies
-        run: |
-          source /tmp/venv/bin/activate
-          cd templates
-          uv sync --group dev
-          uv pip install -e .
-
+        uses: ./.github/actions/install-dev-deps
       - name: Run post-PSR integration tests
-        env:
-          UV_VENV: /tmp/venv
-          PATH: /root/.local/bin:$PATH
-        run: |
-          uv run --directory templates pytest tests/integration/post_psr/ -v
+        uses: ./.github/actions/run-post-psr-tests
 
   cleanup:
     needs: [pre-psr-tests, psr-execution, post-psr-tests]

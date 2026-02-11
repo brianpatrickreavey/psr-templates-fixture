@@ -1,0 +1,12 @@
+name: 'Install Dependencies'
+description: 'Activate venv, sync dev dependencies, and install package'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dev dependencies
+      run: |
+        source /tmp/venv/bin/activate
+        cd repo
+        uv sync --group dev
+        uv pip install -e .
+      shell: bash

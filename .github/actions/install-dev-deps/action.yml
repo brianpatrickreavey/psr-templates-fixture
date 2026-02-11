@@ -1,0 +1,12 @@
+name: 'Install dev dependencies'
+description: 'Install development dependencies for templates repo'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dev dependencies
+      run: |
+        source /tmp/venv/bin/activate
+        cd repo
+        uv sync --group dev
+        uv pip install -e .
+      shell: bash

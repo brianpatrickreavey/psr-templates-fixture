@@ -1,0 +1,39 @@
+name: PSR Template Test Harness (ACT)
+
+on:
+  repository_dispatch:
+    types: [test-harness-run]
+
+jobs:
+  test-harness-act:
+    runs-on: ubuntu-latest
+    env:
+      UV_VENV: /tmp/venv
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
+      - name: Create test branch
+        uses: ./.github/actions/create-test-branch
+      - name: Checkout templates repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.client_payload.templates_repo }}
+          ref: ${{ github.event.client_payload.templates_ref }}
+          path: repo
+          fetch-depth: 0
+      - name: Install dev dependencies
+        uses: ./.github/actions/install-dev-deps
+      - name: Run pre-PSR integration tests
+        uses: ./.github/actions/run-pre-psr-tests
+      - name: Run arranger
+        uses: ./.github/actions/run-arranger
+      - name: Generate test commits
+        uses: ./.github/actions/run-generate-commits
+      - name: Run PSR dry-run
+        uses: ./.github/actions/run-psr-locally
+      - name: Run post-PSR integration tests
+        uses: ./.github/actions/run-post-psr-tests

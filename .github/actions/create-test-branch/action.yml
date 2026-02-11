@@ -1,0 +1,8 @@
+name: 'Create test branch'
+description: 'Create a test branch for CI'
+runs:
+  using: 'composite'
+  steps:
+    - name: Create test branch
+      run: git checkout -b ci/${{ github.event.client_payload.run_id }}
+      shell: bash

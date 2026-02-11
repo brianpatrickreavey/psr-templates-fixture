@@ -1,0 +1,11 @@
+name: 'Set up venv'
+description: 'Set up Python virtual environment with uv'
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up venv
+      run: |
+        export PATH="$PATH:/root/.local/bin"
+        uv venv /tmp/venv
+        export UV_VENV=/tmp/venv
+      shell: bash

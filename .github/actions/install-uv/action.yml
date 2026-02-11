@@ -1,0 +1,8 @@
+name: 'Install uv'
+description: 'Install uv package manager'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install uv
+      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      shell: bash

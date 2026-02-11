@@ -1,0 +1,16 @@
+name: 'Run PSR Locally'
+description: 'Execute PSR with dry-run'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install PSR
+      run: |
+        source /tmp/venv/bin/activate
+        uv pip install python-semantic-release
+      shell: bash
+    - name: Run PSR dry-run
+      run: |
+        source /tmp/venv/bin/activate
+        cd repo
+        python-semantic-release --noop version > psr-dry-run.log
+      shell: bash
