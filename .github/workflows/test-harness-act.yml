@@ -6,6 +6,7 @@ on:
 
 jobs:
   test-harness-act:
+    if: ${{ !startsWith(github.event.client_payload.run_id, 'gha-') }}
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
