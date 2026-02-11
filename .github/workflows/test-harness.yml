@@ -4,6 +4,9 @@ on:
   repository_dispatch:
     types: [test-harness-run]
 
+permissions:
+  contents: write
+
 jobs:
   pre-psr-tests:
     runs-on: ubuntu-latest
