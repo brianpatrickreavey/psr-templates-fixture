@@ -39,17 +39,16 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Push test branch
         run: |
-          cd repo
           git push origin HEAD:ci/${{ github.event.client_payload.run_id }}
 
   psr-execution:
     needs: pre-psr-tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout templates repo
+      - name: Checkout fixture repo
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.client_payload.templates_repo }}
+          repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
       - name: Run PSR
@@ -82,7 +81,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.client_payload.templates_repo }}
-          ref: ci/${{ github.event.client_payload.run_id }}
+          ref: ${{ github.event.client_payload.templates_ref }}
           path: repo
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-deps
