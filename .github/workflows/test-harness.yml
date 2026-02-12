@@ -142,7 +142,7 @@ jobs:
         run: |
           # Get the latest release tag (assuming PSR just created it)
           LATEST_TAG=$(gh api repos/${{ github.repository }}/releases/latest --jq -r '.tag_name')
-          gh release upload $LATEST_TAG fixture/${{ needs.kodi-check.outputs.kodi_project_name }}.zip --clobber
+          gh release upload $LATEST_TAG ${{ needs.kodi-check.outputs.kodi_project_name }}.zip --clobber
 
   pre-cleanup-check:
     needs: [psr-execution, kodi-check, kodi-zip, kodi-publish]
