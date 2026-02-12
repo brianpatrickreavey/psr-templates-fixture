@@ -55,6 +55,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.psr.outputs.tag }}
+      version: ${{ steps.set_version.outputs.version }}
+      psr_tag: ${{ steps.psr.outputs.tag }}
+      psr_version: ${{ steps.psr.outputs.version }}
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
@@ -79,6 +82,12 @@ jobs:
           tag: true
           vcs_release: true
           no_operation_mode: ${{ env.ACT == 'true' }}
+      - name: Set version output
+        id: set_version
+        run: |
+          tag=${{ steps.psr.outputs.tag }}
+          version=${tag#v}
+          echo "version=$version" >> $GITHUB_OUTPUT
 
   kodi-check:
     needs: psr-execution
@@ -122,12 +131,12 @@ jobs:
       - name: Build Kodi addon ZIP
         run: |
           cd ${{ needs.kodi-check.outputs.kodi_directory }}
-          zip -r ../../${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.tag | replace('v', '') }}.zip .
+          zip -r ../../${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip .
       - name: Upload ZIP artifact
         uses: actions/upload-artifact@v4
         with:
           name: kodi-addon-zip
-          path: fixture/${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.tag | replace('v', '') }}.zip
+          path: fixture/${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip
 
   kodi-publish:
     needs: [psr-execution, kodi-check, kodi-zip]
@@ -148,7 +157,7 @@ jobs:
           name: kodi-addon-zip
       - name: Upload ZIP to release
         run: |
-          gh release upload ${{ needs.psr-execution.outputs.tag }} ${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.tag | replace('v', '') }}.zip --clobber
+          gh release upload ${{ needs.psr-execution.outputs.tag }} ${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip --clobber
 
   pre-cleanup-check:
     needs: [psr-execution, kodi-check, kodi-zip, kodi-publish]
