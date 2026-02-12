@@ -130,6 +130,8 @@ jobs:
     needs: [psr-execution, kodi-check, kodi-zip]
     if: needs.kodi-check.outputs.is_kodi == 'true'
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
