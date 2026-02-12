@@ -1,0 +1,22 @@
+name: Shell Test
+
+on:
+  repository_dispatch:
+    types: [shell-test]
+
+jobs:
+  test-shell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test multi-line run without shell
+        run: |
+          echo "Testing without shell specified"
+          pwd
+          ls -la
+
+      - name: Test multi-line run with sh
+        shell: sh
+        run: |
+          echo "Testing with shell: sh"
+          pwd
+          ls -la

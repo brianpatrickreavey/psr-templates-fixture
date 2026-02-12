@@ -1,0 +1,14 @@
+name: Test Hello World
+
+on:
+  repository_dispatch:
+    types: [test-hello]
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run Hello World Action
+        uses: ./.github/actions/hello-world
