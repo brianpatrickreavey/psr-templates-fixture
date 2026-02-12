@@ -55,9 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.psr.outputs.tag }}
-      version: ${{ steps.set_version.outputs.version }}
-      psr_tag: ${{ steps.psr.outputs.tag }}
-      psr_version: ${{ steps.psr.outputs.version }}
+      version: ${{ steps.psr.outputs.version }}
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
@@ -82,12 +80,6 @@ jobs:
           tag: true
           vcs_release: true
           no_operation_mode: ${{ env.ACT == 'true' }}
-      - name: Set version output
-        id: set_version
-        run: |
-          tag=${{ steps.psr.outputs.tag }}
-          version=${tag#v}
-          echo "version=$version" >> $GITHUB_OUTPUT
 
   kodi-check:
     needs: psr-execution
@@ -125,9 +117,6 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - name: Debug PSR outputs
-        run: |
-          echo "All outputs: ${{ toJSON(needs.psr-execution.outputs) }}"
       - name: Build Kodi addon ZIP
         run: |
           cd ${{ needs.kodi-check.outputs.kodi_directory }}
