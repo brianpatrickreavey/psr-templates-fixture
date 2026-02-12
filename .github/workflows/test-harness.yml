@@ -77,6 +77,89 @@ jobs:
           vcs_release: true
           no_operation_mode: ${{ env.ACT == 'true' }}
 
+  kodi-check:
+    needs: psr-execution
+    runs-on: ubuntu-latest
+    outputs:
+      is_kodi: ${{ steps.check.outputs.is_kodi }}
+      kodi_project_name: ${{ steps.check.outputs.kodi_project_name }}
+      kodi_directory: ${{ steps.check.outputs.kodi_directory }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Checkout templates repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.client_payload.templates_repo }}
+          ref: ${{ github.event.client_payload.templates_ref }}
+          path: repo
+      - name: Check for Kodi project and set env vars
+        id: check
+        run: |
+          python repo/tools/check_kodi.py pyproject.toml >> $GITHUB_OUTPUT
+
+  kodi-zip:
+    needs: [psr-execution, kodi-check]
+    if: needs.kodi-check.outputs.is_kodi == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Build Kodi addon ZIP
+        run: |
+          cd ${{ needs.kodi-check.outputs.kodi_directory }}
+          zip -r ../../${{ needs.kodi-check.outputs.kodi_project_name }}.zip .
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodi-addon-zip
+          path: ${{ needs.kodi-check.outputs.kodi_project_name }}.zip
+
+  kodi-publish:
+    needs: [psr-execution, kodi-zip]
+    if: needs.kodi-check.outputs.is_kodi == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Download ZIP artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kodi-addon-zip
+      - name: Upload ZIP to release
+        run: |
+          # Get the latest release tag (assuming PSR just created it)
+          LATEST_TAG=$(gh api repos/${{ github.repository }}/releases/latest --jq '.tag_name')
+          gh release upload $LATEST_TAG ${{ needs.kodi-check.outputs.kodi_project_name }}.zip --clobber
+
+  pre-cleanup-check:
+    needs: [psr-execution, kodi-check, kodi-zip, kodi-publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: List tags
+        run: |
+          gh api repos/${{ github.repository }}/git/refs/tags --jq '.[] | .ref' || echo "No tags found"
+      - name: List releases
+        run: |
+          gh api repos/${{ github.repository }}/releases --jq '.[] | {tag: .tag_name, assets: (.assets | length)}' || echo "No releases found"
+      - name: List artifacts on releases
+        run: |
+          gh api repos/${{ github.repository }}/releases --jq '.[] | select(.assets != []) | {release: .tag_name, assets: [.assets[].name]}' || echo "No release assets found"
+      - name: Sleep for inspection
+        run: sleep 300
+
   post-psr-tests:
     needs: psr-execution
     runs-on: ubuntu-latest
@@ -109,7 +192,7 @@ jobs:
         uses: ./.github/actions/run-post-psr-tests
 
   cleanup:
-    needs: [pre-psr-tests, psr-execution, post-psr-tests]
+    needs: [pre-psr-tests, psr-execution, kodi-check, kodi-zip, kodi-publish, pre-cleanup-check, post-psr-tests]
     runs-on: ubuntu-latest
     if: always()
     steps:
