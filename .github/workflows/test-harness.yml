@@ -116,6 +116,10 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
+      - name: Debug PSR outputs
+        run: |
+          echo "Tag: ${{ needs.psr-execution.outputs.tag }}"
+          echo "Version: ${{ needs.psr-execution.outputs.version }}"
       - name: Build Kodi addon ZIP
         run: |
           cd ${{ needs.kodi-check.outputs.kodi_directory }}
