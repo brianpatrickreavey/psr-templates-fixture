@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
+      - name: Pre-cleanup tags, releases, and branches
+        uses: ./.github/actions/cleanup-tags-releases
       - name: Install uv
         uses: ./.github/actions/install-uv
       - name: Set up venv
@@ -34,6 +36,14 @@ jobs:
         uses: ./.github/actions/run-arranger
       - name: Generate test commits
         uses: ./.github/actions/run-generate-commits
+      - name: Check for Kodi project and set env vars
+        id: check
+        run: |
+          python repo/tools/check_kodi.py pyproject.toml >> $GITHUB_OUTPUT
+      - name: Pre-cleanup check (dry-run simulation)
+        run: |
+          echo "Simulated tags:" && git tag || echo "No tags"
+          echo "Simulated releases:" && echo "None (dry-run)"
       - name: Run PSR dry-run
         uses: ./.github/actions/run-psr-locally
       - name: Run post-PSR integration tests
