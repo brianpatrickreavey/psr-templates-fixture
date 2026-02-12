@@ -7,6 +7,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: psr-test-harness-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   pre-psr-tests:
     runs-on: ubuntu-latest
@@ -15,6 +19,8 @@ jobs:
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
+      - name: Pre-cleanup tags, releases, and branches
+        uses: ./.github/actions/cleanup-tags-releases
       - name: Install uv
         uses: ./.github/actions/install-uv
       - name: Set up venv
@@ -115,10 +121,8 @@ jobs:
           git checkout main
           git branch -D ci/${{ github.event.client_payload.run_id }} || true
 
-      - name: Clean up test tags
-        run: |
-          git tag -l "v*" | xargs -r git tag -d || true
-          git tag -l "v*" | xargs -r git push --delete origin || true
+      - name: Clean up tags, releases, and branches
+        uses: ./.github/actions/cleanup-tags-releases
 
       - name: Dispatch results back to templates repo
         run: |

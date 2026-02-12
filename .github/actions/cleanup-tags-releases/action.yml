@@ -1,0 +1,35 @@
+name: 'Cleanup Tags, Releases, and Branches'
+description: 'Delete all GitHub tags, releases, and ci/* branches'
+runs:
+  using: 'composite'
+  steps:
+    - name: Delete all releases
+      run: |
+        gh api repos/${{ github.repository }}/releases --jq '.[].id' | xargs -I {} gh api repos/${{ github.repository }}/releases/{} -X DELETE || true
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Delete all tags
+      run: |
+        gh api repos/${{ github.repository }}/git/refs/tags --jq '.[].ref' | sed 's|refs/tags/||' | xargs -I {} gh api repos/${{ github.repository }}/git/refs/tags/{} -X DELETE || true
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Delete ci/* branches
+      run: |
+        git branch -r | grep 'origin/ci/' | sed 's|origin/||' | xargs -I {} git push origin --delete {} || true
+        git branch -D $(git branch | grep 'ci/') || true
+      shell: bash
+    - name: Verify cleanup
+      run: |
+        RELEASE_COUNT=$(gh api repos/${{ github.repository }}/releases --jq 'length' 2>/dev/null || echo 0)
+        TAG_COUNT=$(gh api repos/${{ github.repository }}/git/refs/tags --jq 'length' 2>/dev/null || echo 0)
+        BRANCH_COUNT=$(git branch -r | grep -c 'origin/ci/' || echo 0)
+        if [ "$RELEASE_COUNT" -gt 0 ] || [ "$TAG_COUNT" -gt 0 ] || [ "$BRANCH_COUNT" -gt 0 ]; then
+          echo "Cleanup failed: $RELEASE_COUNT releases, $TAG_COUNT tags, $BRANCH_COUNT ci/* branches remain."
+          exit 1
+        fi
+        echo "Cleanup verified."
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
