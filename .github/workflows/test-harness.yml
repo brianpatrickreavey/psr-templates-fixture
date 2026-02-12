@@ -124,7 +124,7 @@ jobs:
           path: fixture/${{ needs.kodi-check.outputs.kodi_project_name }}.zip
 
   kodi-publish:
-    needs: [psr-execution, kodi-zip]
+    needs: [psr-execution, kodi-check, kodi-zip]
     if: needs.kodi-check.outputs.is_kodi == 'true'
     runs-on: ubuntu-latest
     steps:
