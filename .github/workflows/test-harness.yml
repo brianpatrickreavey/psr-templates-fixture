@@ -161,7 +161,7 @@ jobs:
         run: sleep 300
 
   post-psr-tests:
-    needs: psr-execution
+    needs: [psr-execution, kodi-check, kodi-zip, kodi-publish]
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
