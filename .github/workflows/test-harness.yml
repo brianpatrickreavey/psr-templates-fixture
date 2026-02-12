@@ -32,7 +32,7 @@ jobs:
         with:
           repository: ${{ github.event.client_payload.templates_repo }}
           ref: ${{ github.event.client_payload.templates_ref }}
-          path: repo
+          path: psr-templates
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-deps
       - name: Run pre-PSR integration tests
@@ -43,7 +43,7 @@ jobs:
         uses: ./.github/actions/run-generate-commits
       - name: Configure git for push
         run: |
-          cd repo
+          cd psr-templates
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Push test branch
@@ -68,17 +68,13 @@ jobs:
         with:
           repository: ${{ github.event.client_payload.templates_repo }}
           ref: ${{ github.event.client_payload.templates_ref }}
-          path: repo
+          path: psr-templates
       - name: Run PSR
         id: psr
         continue-on-error: true
-        uses: python-semantic-release/python-semantic-release@v10.5.3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          commit: true
-          push: true
-          tag: true
-          vcs_release: true
+        run: cd kodi-addon-fixture && python-semantic-release version --commit --push --tag --vcs-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           no_operation_mode: ${{ env.ACT == 'true' }}
 
   kodi-check:
@@ -100,11 +96,12 @@ jobs:
         with:
           repository: ${{ github.event.client_payload.templates_repo }}
           ref: ${{ github.event.client_payload.templates_ref }}
-          path: repo
+          path: psr-templates
       - name: Check for Kodi project and set env vars
         id: check
+        working-directory: kodi-addon-fixture
         run: |
-          python repo/tools/check_kodi.py pyproject.toml >> $GITHUB_OUTPUT
+          python ../psr-templates/tools/check_kodi.py pyproject.toml >> $GITHUB_OUTPUT
 
   kodi-zip:
     needs: [psr-execution, kodi-check]
@@ -125,7 +122,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kodi-addon-zip
-          path: fixture/${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip
+          path: ${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip
 
   kodi-publish:
     needs: [psr-execution, kodi-check, kodi-zip]
@@ -190,7 +187,7 @@ jobs:
         with:
           repository: ${{ github.event.client_payload.templates_repo }}
           ref: ${{ github.event.client_payload.templates_ref }}
-          path: repo
+          path: psr-templates
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-deps
       - name: Run post-PSR integration tests

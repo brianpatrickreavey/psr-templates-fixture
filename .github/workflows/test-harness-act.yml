@@ -24,7 +24,7 @@ jobs:
         with:
           repository: ${{ github.event.client_payload.templates_repo }}
           ref: ${{ github.event.client_payload.templates_ref }}
-          path: repo
+          path: psr-templates
           fetch-depth: 0
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-deps
@@ -36,13 +36,16 @@ jobs:
         uses: ./.github/actions/run-generate-commits
       - name: Check for Kodi project and set env vars
         id: check
+        working-directory: kodi-addon-fixture
         run: |
-          python repo/tools/check_kodi.py pyproject.toml >> $GITHUB_OUTPUT
+          python ../psr-templates/tools/check_kodi.py pyproject.toml >> $GITHUB_OUTPUT
       - name: Pre-cleanup check (dry-run simulation)
         run: |
           echo "Simulated tags:" && git tag || echo "No tags"
           echo "Simulated releases:" && echo "None (dry-run)"
       - name: Run PSR dry-run
         uses: ./.github/actions/run-psr-locally
+        with:
+          fixture_dir: kodi-addon-fixture
       - name: Run post-PSR integration tests
         uses: ./.github/actions/run-post-psr-tests

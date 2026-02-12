@@ -6,7 +6,7 @@ runs:
     - name: Run post-PSR integration tests
       run: |
         source /tmp/venv/bin/activate
-        cd repo
+        cd psr-templates
         if [ "$ACT" = "true" ]; then
           PSR_VALIDATE_REAL=0 uv run pytest tests/integration/post_psr/ -v
         else

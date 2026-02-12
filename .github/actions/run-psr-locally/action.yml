@@ -1,5 +1,10 @@
 name: 'Run PSR Locally'
 description: 'Execute PSR with dry-run'
+inputs:
+  fixture_dir:
+    description: 'Directory to run PSR in'
+    required: false
+    default: '.'
 runs:
   using: 'composite'
   steps:
@@ -11,5 +16,6 @@ runs:
     - name: Run PSR dry-run
       run: |
         source /tmp/venv/bin/activate
+        cd ${{ inputs.fixture_dir }}
         python-semantic-release --noop version > psr-dry-run.log
       shell: bash

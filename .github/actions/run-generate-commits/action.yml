@@ -6,6 +6,6 @@ runs:
     - name: Generate test commits
       run: |
         source /tmp/venv/bin/activate
-        cd repo
+        cd psr-templates
         python tools/generate_commits.py ..
       shell: bash
