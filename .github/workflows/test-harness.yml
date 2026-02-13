@@ -31,7 +31,8 @@ jobs:
       - name: Create test branch
         uses: ./.github/actions/create-test-branch
       - name: Install dev dependencies
-        run: uv sync --group dev --active
+        run: |
+          uv pip install psr-templates pytest
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
       - name: Generate test commits
