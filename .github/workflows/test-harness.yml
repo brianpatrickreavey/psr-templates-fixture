@@ -30,21 +30,14 @@ jobs:
         uses: ./.github/actions/setup-venv
       - name: Create test branch
         uses: ./.github/actions/create-test-branch
-      - name: Checkout templates repo
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.client_payload.templates_repo }}
-          ref: ${{ github.event.client_payload.templates_ref }}
-          path: psr-templates
       - name: Install dev dependencies
-        uses: ./.github/actions/install-dev-deps
+        run: uv sync --group dev
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
       - name: Generate test commits
         uses: ./.github/actions/run-generate-commits
       - name: Configure git for push
         run: |
-          cd psr-templates
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Push test branch
@@ -67,12 +60,6 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - name: Checkout templates repo
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.client_payload.templates_repo }}
-          ref: ${{ github.event.client_payload.templates_ref }}
-          path: kodi-addon-fixture/psr-templates
       - name: Run arranger
         run: python -m arranger.run
       - name: Run PSR
@@ -102,12 +89,6 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - name: Checkout templates repo
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.client_payload.templates_repo }}
-          ref: ${{ github.event.client_payload.templates_ref }}
-          path: psr-templates
       - name: Check for Kodi project and set env vars
         id: check
         working-directory: kodi-addon-fixture
@@ -193,14 +174,8 @@ jobs:
       - name: Switch to test branch
         run: |
           git checkout ci/${{ github.event.client_payload.run_id }} || git checkout -b ci/${{ github.event.client_payload.run_id }}
-      - name: Checkout templates repo
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.client_payload.templates_repo }}
-          ref: ${{ github.event.client_payload.templates_ref }}
-          path: psr-templates
       - name: Install dev dependencies
-        uses: ./.github/actions/install-dev-deps
+        run: uv sync --group dev
       - name: Run post-PSR integration tests
         uses: ./.github/actions/run-post-psr-tests
 

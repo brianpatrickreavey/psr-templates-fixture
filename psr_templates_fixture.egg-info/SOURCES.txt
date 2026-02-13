@@ -1,0 +1,6 @@
+README.md
+pyproject.toml
+psr_templates_fixture.egg-info/PKG-INFO
+psr_templates_fixture.egg-info/SOURCES.txt
+psr_templates_fixture.egg-info/dependency_links.txt
+psr_templates_fixture.egg-info/top_level.txt

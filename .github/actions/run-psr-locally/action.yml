@@ -13,9 +13,11 @@ runs:
         source /tmp/venv/bin/activate
         uv pip install python-semantic-release
       shell: bash
+      working-directory: ${{ github.workspace }}
     - name: Run PSR dry-run
       run: |
         source /tmp/venv/bin/activate
         cd ${{ inputs.fixture_dir }}
         python-semantic-release --noop version > psr-dry-run.log
       shell: bash
+      working-directory: ${{ github.workspace }}

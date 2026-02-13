@@ -6,7 +6,6 @@ runs:
     - name: Install dev dependencies
       run: |
         source /tmp/venv/bin/activate
-        cd psr-templates
         uv sync --group dev
         uv pip install -e .
       shell: bash

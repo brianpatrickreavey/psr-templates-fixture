@@ -1,3 +1,11 @@
+Metadata-Version: 2.4
+Name: psr-templates-fixture
+Version: 0.1.0
+Summary: Fake Python project for testing PSR templates
+Author: Test Author
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+
 # PSR Templates Fixture
 
 This is a test fixture repository for validating PSR (Python Semantic Release) templates end-to-end.
@@ -14,8 +22,8 @@ For local CI testing before pushing:
 - This simulates the workflow with default payload values.
 
 ## Structure
-- `kodi-addon-fixture/`: Base setup for Kodi addon projects (e.g., script.module.example/addon.xml).
-- `pypi-fixture/`: Base setup for PyPI-style Python projects.
+- `fixture/pypi/`: Base setup for PyPI-style Python projects.
+- `fixture/kodi/`: Base setup for Kodi addon projects (e.g., script.module.example/addon.xml).
 - `tests/`: Integration tests for validating PSR templates and execution.
 - `pyproject.toml`: Root config (may be overridden by subdirs).
 - `.github/workflows/`: CI for test runs.

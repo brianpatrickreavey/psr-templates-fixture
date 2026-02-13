@@ -8,6 +8,9 @@ jobs:
   test-harness-act:
     if: ${{ !startsWith(github.event.client_payload.run_id, 'gha-') }}
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kodi-addon-fixture
     env:
       UV_VENV: /tmp/venv
     steps:
@@ -24,7 +27,7 @@ jobs:
         with:
           repository: ${{ github.event.client_payload.templates_repo }}
           ref: ${{ github.event.client_payload.templates_ref }}
-          path: psr-templates
+          path: kodi-addon-fixture/psr-templates
           fetch-depth: 0
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-deps
@@ -38,7 +41,7 @@ jobs:
         id: check
         working-directory: kodi-addon-fixture
         run: |
-          python ../psr-templates/tools/check_kodi.py pyproject.toml >> $GITHUB_OUTPUT
+          python ../tools/check_kodi.py ../pyproject.toml >> $GITHUB_OUTPUT
       - name: Pre-cleanup check (dry-run simulation)
         run: |
           echo "Simulated tags:" && git tag || echo "No tags"
@@ -46,6 +49,6 @@ jobs:
       - name: Run PSR dry-run
         uses: ./.github/actions/run-psr-locally
         with:
-          fixture_dir: kodi-addon-fixture
+          fixture_dir: .
       - name: Run post-PSR integration tests
         uses: ./.github/actions/run-post-psr-tests

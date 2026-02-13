@@ -28,8 +28,5 @@ prerelease = false
 match = "ci/.*"
 prerelease = false
 
-[tool.arranger]
-use-default-kodi-addon-structure = true
-kodi-project-name = "script.module.example"
-source-mappings = { }
-root_dir = "kodi-addon-fixture"
+[dependency-groups]
+dev = ["psr-templates @ git+https://github.com/brianpatrickreavey/psr-templates.git@main", "pytest"]
