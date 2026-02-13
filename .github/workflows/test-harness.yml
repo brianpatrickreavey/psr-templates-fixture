@@ -32,7 +32,8 @@ jobs:
         uses: ./.github/actions/create-test-branch
       - name: Install dev dependencies
         run: |
-          uv pip install psr-templates pytest
+          source /tmp/venv/bin/activate
+          uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git pytest
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
       - name: Generate test commits
@@ -176,7 +177,9 @@ jobs:
         run: |
           git checkout ci/${{ github.event.client_payload.run_id }} || git checkout -b ci/${{ github.event.client_payload.run_id }}
       - name: Install dev dependencies
-        run: uv sync --group dev
+        run: |
+          uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git
+          uv sync --group dev
       - name: Run post-PSR integration tests
         uses: ./.github/actions/run-post-psr-tests
 
