@@ -16,6 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
@@ -37,8 +40,6 @@ jobs:
         uses: ./.github/actions/install-dev-deps
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
-      - name: Run arranger
-        uses: ./.github/actions/run-arranger
       - name: Generate test commits
         uses: ./.github/actions/run-generate-commits
       - name: Configure git for push
@@ -53,6 +54,9 @@ jobs:
   psr-execution:
     needs: pre-psr-tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kodi-addon-fixture
     outputs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
@@ -68,13 +72,15 @@ jobs:
         with:
           repository: ${{ github.event.client_payload.templates_repo }}
           ref: ${{ github.event.client_payload.templates_ref }}
-          path: psr-templates
+          path: kodi-addon-fixture/psr-templates
+      - name: Run arranger
+        run: python -m arranger.run
       - name: Run PSR
         id: psr
         continue-on-error: true
         uses: python-semantic-release/python-semantic-release@v10.5.3
         with:
-          directory: kodi-addon-fixture
+          directory: .
           github_token: ${{ secrets.GITHUB_TOKEN }}
           commit: true
           push: true
@@ -106,7 +112,7 @@ jobs:
         id: check
         working-directory: kodi-addon-fixture
         run: |
-          python ../psr-templates/tools/check_kodi.py pyproject.toml >> $GITHUB_OUTPUT
+          python ../tools/check_kodi.py ../pyproject.toml >> $GITHUB_OUTPUT
 
   kodi-zip:
     needs: [psr-execution, kodi-check]
