@@ -12,7 +12,7 @@ requires-python = ">=3.8"
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
-changelog = {template_dir = "repo/templates", default_templates = {changelog_file = "CHANGELOG.md"}}
+changelog = {template_dir = "kodi-addon-fixture/templates", default_templates = {changelog_file = "CHANGELOG.md"}}
 commit_parser = "angular"
 tag_format = "v{version}"
 allow_zero_version = true

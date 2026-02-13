@@ -72,9 +72,14 @@ jobs:
       - name: Run PSR
         id: psr
         continue-on-error: true
-        run: cd kodi-addon-fixture && python-semantic-release version --commit --push --tag --vcs-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: python-semantic-release/python-semantic-release@v10.5.3
+        with:
+          directory: kodi-addon-fixture
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit: true
+          push: true
+          tag: true
+          vcs_release: true
           no_operation_mode: ${{ env.ACT == 'true' }}
 
   kodi-check:
