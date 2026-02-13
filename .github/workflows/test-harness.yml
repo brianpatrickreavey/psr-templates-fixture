@@ -75,6 +75,7 @@ jobs:
         uses: python-semantic-release/python-semantic-release@v10.5.3
         with:
           directory: kodi-addon-fixture
+          config_file: ../pyproject.toml
           github_token: ${{ secrets.GITHUB_TOKEN }}
           commit: true
           push: true
@@ -164,7 +165,7 @@ jobs:
         run: |
           gh api repos/${{ github.repository }}/releases --jq '.[] | select(.assets != []) | {release: .tag_name, assets: [.assets[].name]}' || echo "No release assets found"
       - name: Sleep for inspection
-        run: sleep 300
+        run: sleep 60
 
   post-psr-tests:
     needs: [psr-execution, kodi-check, kodi-zip, kodi-publish]
