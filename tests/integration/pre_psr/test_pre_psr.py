@@ -14,21 +14,20 @@ def test_template_arrangement(temp_git_repo, sample_config):
     # Run arranger (mock or real? For integration, real)
     from arranger.run import load_config, build_mappings, arrange_templates
 
-    config = load_config(
-        Path("pyproject.toml")
-    )  # Relative to repo directory
+    # Load config from fixture's pyproject.toml, not pytest's working directory
+    config = load_config(temp_git_repo / "pyproject.toml")
 
-    # Mock args
+    # Mock args for changelog-only mode
     class Args:
         pypi = False
         kodi_addon = False
-        changelog_only = False
-        override = False
+        changelog_only = True
+        override = True  # Allow overwriting files already in temp repo
 
     args = Args()
     mappings = build_mappings(config, args)
-    arrange_templates(temp_git_repo, mappings)
-    assert (temp_git_repo / "CHANGELOG.md").exists()
+    arrange_templates(fixture_dir, mappings, override=True)
+    assert (fixture_dir / "CHANGELOG.md").exists()
 
 
 def test_commit_generation(temp_git_repo):

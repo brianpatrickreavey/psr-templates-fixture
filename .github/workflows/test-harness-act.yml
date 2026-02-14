@@ -22,15 +22,11 @@ jobs:
         uses: ./.github/actions/setup-venv
       - name: Create test branch
         uses: ./.github/actions/create-test-branch
-      - name: Checkout templates repo
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.client_payload.templates_repo }}
-          ref: ${{ github.event.client_payload.templates_ref }}
-          path: kodi-addon-fixture/psr-templates
-          fetch-depth: 0
       - name: Install dev dependencies
-        uses: ./.github/actions/install-dev-deps
+        working-directory: ${{ github.workspace }}
+        run: |
+          source /tmp/venv/bin/activate
+          uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git pytest
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
       - name: Run arranger

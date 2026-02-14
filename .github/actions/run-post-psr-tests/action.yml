@@ -5,10 +5,11 @@ runs:
   steps:
     - name: Run post-PSR integration tests
       run: |
+        source /tmp/venv/bin/activate
         if [ "$ACT" = "true" ]; then
-          uv run pytest tests/integration/post_psr/ -v
+          pytest tests/integration/post_psr/ -v
         else
-          PSR_VALIDATE_REAL=1 uv run pytest tests/integration/post_psr/ -v
+          PSR_VALIDATE_REAL=1 pytest tests/integration/post_psr/ -v
         fi
       shell: bash
       working-directory: ${{ github.workspace }}

@@ -27,6 +27,3 @@ prerelease = false
 [tool.semantic_release.branches.ci]
 match = "ci/.*"
 prerelease = false
-
-[dependency-groups]
-dev = ["psr-templates @ git+https://github.com/brianpatrickreavey/psr-templates.git@main", "pytest"]

@@ -9,7 +9,7 @@ from pathlib import Path
 
 @pytest.fixture
 def temp_git_repo():
-    """Create a temporary git repository for testing."""
+    """Create a temporary git repository for testing with project structure."""
     with tempfile.TemporaryDirectory() as tmpdir:
         repo_path = Path(tmpdir)
         # Initialize git repo
@@ -24,9 +24,39 @@ def temp_git_repo():
             cwd=repo_path,
             check=True,
         )
-        # Create initial commit on master
+        
+        # Create minimal pyproject.toml with [tool.arranger] config
+        pyproject_content = """\
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "test-fixture"
+version = "0.1.0"
+description = "Test fixture for PSR templates"
+authors = [{name = "Test Author"}]
+requires-python = ">=3.8"
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+changelog = {template_dir = "templates", default_templates = {changelog_file = "CHANGELOG.md"}}
+commit_parser = "angular"
+tag_format = "v{version}"
+allow_zero_version = true
+major_on_zero = false
+
+[tool.arranger]
+"""
+        (repo_path / "pyproject.toml").write_text(pyproject_content)
+        
+        # Create templates directory for arranger output
+        (repo_path / "templates").mkdir(exist_ok=True)
+        
+        # Create initial commit with project files
+        subprocess.run(["git", "add", "."], cwd=repo_path, check=True)
         subprocess.run(
-            ["git", "commit", "--allow-empty", "-m", "initial"],
+            ["git", "commit", "-m", "initial"],
             cwd=repo_path,
             check=True,
         )

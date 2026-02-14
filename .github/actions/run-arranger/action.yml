@@ -5,6 +5,7 @@ runs:
   steps:
     - name: Run arranger
       run: |
-        uv run python -c "from arranger.run import main; import sys; sys.argv = ['arranger.run', '--override']; main()"
+        source /tmp/venv/bin/activate
+        python -c "from arranger.run import main; import sys; sys.argv = ['arranger.run', '--override']; main()"
       shell: bash
       working-directory: ${{ github.workspace }}

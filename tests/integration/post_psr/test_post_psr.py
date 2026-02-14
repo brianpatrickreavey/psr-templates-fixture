@@ -10,12 +10,15 @@ import datetime
 import os
 import xml.etree.ElementTree as ET
 
+# Get fixture repo root consistently regardless of pytest invocation directory
+FIXTURE_REPO_ROOT = Path(__file__).parent.parent.parent.parent
+
 
 def test_version_number_extraction(mock_psr_response):
     """Test that version numbers are extracted correctly from PSR output."""
     if os.getenv("PSR_VALIDATE_REAL") == "1":
         # Validate real PSR output: check for version in CHANGELOG.md or pyproject.toml
-        changelog_path = Path("../../kodi-addon-fixture/CHANGELOG.md")  # Relative to fixture/tests/
+        changelog_path = FIXTURE_REPO_ROOT / "kodi-addon-fixture" / "CHANGELOG.md"
         if changelog_path.exists():
             content = changelog_path.read_text()
             assert "## v0.1.0" in content  # Check for version header
@@ -31,7 +34,7 @@ def test_changelog_generation(mock_psr_response, temp_git_repo):
     """Test that changelog is generated with correct dates and content."""
     if os.getenv("PSR_VALIDATE_REAL") == "1":
         # Validate real changelog
-        changelog_path = Path("../../kodi-addon-fixture/CHANGELOG.md")
+        changelog_path = FIXTURE_REPO_ROOT / "kodi-addon-fixture" / "CHANGELOG.md"
         assert changelog_path.exists()
         content = changelog_path.read_text()
         assert "## v0.1.0" in content
@@ -50,7 +53,10 @@ def test_tag_creation(temp_git_repo, mock_psr_response):
     if os.getenv("PSR_VALIDATE_REAL") == "1":
         # Validate real tags in fixture repo
         result = subprocess.run(
-            ["git", "tag", "-l"], cwd=Path("../../kodi-addon-fixture"), capture_output=True, text=True
+            ["git", "tag", "-l"],
+            cwd=FIXTURE_REPO_ROOT / "kodi-addon-fixture",
+            capture_output=True,
+            text=True,
         )
         assert "v0.1.0" in result.stdout  # Example tag check
     else:
@@ -125,7 +131,9 @@ def test_release_artifacts():
             assert f"script.module.example-{version}.zip" in asset_names  # Example for Kodi
 
             # Validate addon.xml contents
-            addon_xml_path = Path("../kodi-addon-fixture/script.module.example/addon.xml")
+            addon_xml_path = (
+                FIXTURE_REPO_ROOT / "kodi-addon-fixture" / "script.module.example" / "addon.xml"
+            )
             assert addon_xml_path.exists(), "addon.xml should exist"
             tree = ET.parse(addon_xml_path)
             root = tree.getroot()

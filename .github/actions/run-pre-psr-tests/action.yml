@@ -4,5 +4,7 @@ runs:
   using: 'composite'
   steps:
     - name: Run pre-PSR integration tests
-      run: uv run pytest tests/integration/pre_psr/ -v
+      run: |
+        source /tmp/venv/bin/activate
+        pytest tests/integration/pre_psr/ -v
       shell: bash
