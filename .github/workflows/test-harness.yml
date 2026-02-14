@@ -158,6 +158,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: kodi-addon-zip
+          path: artifacts
       - name: Upload ZIP to release
         run: |
           gh release upload ${{ needs.psr-execution.outputs.tag }} artifacts/${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip --clobber
