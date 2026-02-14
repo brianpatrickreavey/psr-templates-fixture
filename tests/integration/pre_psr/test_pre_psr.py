@@ -7,27 +7,28 @@ from pathlib import Path
 import subprocess
 
 
-def test_template_arrangement(temp_git_repo, sample_config):
+def test_template_arrangement(kodi_addon_fixture):
     """Test that templates are arranged correctly in the fixture repo."""
-    fixture_dir = temp_git_repo
-
-    # Run arranger (mock or real? For integration, real)
+    # Run arranger on the real kodi-addon-fixture
     from arranger.run import load_config, build_mappings, arrange_templates
 
-    # Load config from fixture's pyproject.toml, not pytest's working directory
-    config = load_config(temp_git_repo / "pyproject.toml")
+    # Load config from the actual kodi-addon-fixture pyproject.toml
+    config = load_config(kodi_addon_fixture / "pyproject.toml")
 
-    # Mock args for changelog-only mode
+    # Mock args for kodi addon mode
     class Args:
         pypi = False
-        kodi_addon = False
-        changelog_only = True
-        override = True  # Allow overwriting files already in temp repo
+        kodi_addon = True
+        changelog_only = False
+        override = True
 
     args = Args()
     mappings = build_mappings(config, args)
-    arrange_templates(fixture_dir, mappings, override=True)
-    assert (fixture_dir / "templates" / "CHANGELOG.md.j2").exists()
+    arrange_templates(kodi_addon_fixture, mappings, override=True)
+    
+    # Verify both templates are placed correctly
+    assert (kodi_addon_fixture / "templates" / "CHANGELOG.md.j2").exists()
+    assert (kodi_addon_fixture / "templates" / "script.module.example" / "addon.xml.j2").exists()
 
 
 
