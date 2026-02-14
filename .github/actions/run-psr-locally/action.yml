@@ -1,5 +1,5 @@
 name: 'Run PSR Locally'
-description: 'Execute PSR with dry-run'
+description: 'Execute PSR with template rendering (no actual release)'
 inputs:
   fixture_dir:
     description: 'Directory to run PSR in'
@@ -14,10 +14,10 @@ runs:
         uv pip install python-semantic-release
       shell: bash
       working-directory: ${{ github.workspace }}
-    - name: Run PSR dry-run
+    - name: Run PSR (render templates, no release/push)
       run: |
         source /tmp/venv/bin/activate
         cd ${{ inputs.fixture_dir }}
-        python-semantic-release version > psr-dry-run.log
+        python-semantic-release publish --ci false --no-push --no-tag --no-vcs-release 2>&1 | tee psr-run.log
       shell: bash
       working-directory: ${{ github.workspace }}
