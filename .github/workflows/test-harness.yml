@@ -76,7 +76,7 @@ jobs:
         continue-on-error: true
         uses: python-semantic-release/python-semantic-release@v10.5.3
         with:
-          directory: .
+          directory: kodi-addon-fixture
           github_token: ${{ secrets.GITHUB_TOKEN }}
           commit: true
           push: true
