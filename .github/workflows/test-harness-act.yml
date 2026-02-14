@@ -24,7 +24,7 @@ jobs:
       - name: Create test branch
         uses: ./.github/actions/create-test-branch
       - name: Install dev dependencies
-        uses: ./.github/actions/install-dev-dependencies-base
+        uses: ./.github/actions/install-dev-dependencies
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
       - name: Run arranger
