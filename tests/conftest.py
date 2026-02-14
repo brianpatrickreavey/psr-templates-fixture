@@ -78,6 +78,6 @@ def mock_psr_response():
 def sample_config():
     """Sample configuration for arranger."""
     return {
-        "templates/universal/CHANGELOG.md.j2": "CHANGELOG.md",
-        "templates/kodi-addons/addon.xml.j2": "addon.xml",
+        "templates/CHANGELOG.md.j2": "universal/CHANGELOG.md.j2",
+        "templates/addon.xml.j2": "kodi-addons/addon.xml.j2",
     }

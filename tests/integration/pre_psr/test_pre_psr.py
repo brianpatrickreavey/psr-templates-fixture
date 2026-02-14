@@ -27,7 +27,7 @@ def test_template_arrangement(temp_git_repo, sample_config):
     args = Args()
     mappings = build_mappings(config, args)
     arrange_templates(fixture_dir, mappings, override=True)
-    assert (fixture_dir / "CHANGELOG.md").exists()
+    assert (fixture_dir / "templates" / "CHANGELOG.md.j2").exists()
 
 
 def test_commit_generation(temp_git_repo):
