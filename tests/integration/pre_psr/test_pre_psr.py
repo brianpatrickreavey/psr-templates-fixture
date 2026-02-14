@@ -24,7 +24,7 @@ def test_template_arrangement(kodi_addon_fixture):
     args = Args()
     mappings = build_mappings(config, args)
     arrange_templates(kodi_addon_fixture, mappings, override=True)
-    
+
     # Verify both templates are placed correctly in simplified structure
     assert (kodi_addon_fixture / "templates" / "CHANGELOG.md.j2").exists()
     assert (kodi_addon_fixture / "templates" / "script.module.example" / "addon.xml.j2").exists()
