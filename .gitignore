@@ -12,3 +12,4 @@ dist
 .act/
 .artifacts/
 uv.lock
+templates/
