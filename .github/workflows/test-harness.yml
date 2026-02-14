@@ -74,7 +74,7 @@ jobs:
       - name: Debug - List files before PSR
         run: |
           echo "=== Current directory: $(pwd) ==="
-          echo "=== Files in kodi-addon-fixture/ ==="
+          echo "=== Files in repo root ==="
           ls -lhR .
           echo "=== Search for addon.xml files ==="
           find . -name "addon.xml*" -type f -exec ls -lh {} \;

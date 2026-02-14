@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: kodi-addon-fixture
+        working-directory: ${{ github.workspace }}
     env:
       UV_VENV: /tmp/venv
       PSR_VALIDATE_REAL: 0

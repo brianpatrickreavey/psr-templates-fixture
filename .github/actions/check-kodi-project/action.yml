@@ -18,6 +18,5 @@ runs:
     - name: Check for Kodi project and set env vars
       id: check
       shell: bash
-      working-directory: kodi-addon-fixture
       run: |
-        python ../tools/check_kodi.py pyproject.toml >> $GITHUB_OUTPUT
+        python tools/check_kodi.py pyproject.toml >> $GITHUB_OUTPUT

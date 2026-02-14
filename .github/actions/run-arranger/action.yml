@@ -8,4 +8,4 @@ runs:
         source /tmp/venv/bin/activate
         python -m arranger.run --override
       shell: bash
-      working-directory: ${{ github.workspace }}/kodi-addon-fixture
+      working-directory: ${{ github.workspace }}
