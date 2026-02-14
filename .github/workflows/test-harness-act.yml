@@ -17,8 +17,8 @@ jobs:
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
-      - name: Pre-cleanup tags, releases, and branches
-        uses: ./.github/actions/cleanup-tags-releases
+      - name: Pre-cleanup local tags
+        run: git tag -d $(git tag) || true
       - name: Install uv
         uses: ./.github/actions/install-uv
       - name: Set up venv
@@ -51,6 +51,6 @@ jobs:
         run: |
           git checkout main || true
           git branch -D ci/${{ github.event.client_payload.run_id }} 2>/dev/null || true
-      - name: Final cleanup tags and releases
+      - name: Final cleanup local tags
         if: always()
-        uses: ./.github/actions/cleanup-tags-releases
+        run: git tag -d $(git tag) || true
