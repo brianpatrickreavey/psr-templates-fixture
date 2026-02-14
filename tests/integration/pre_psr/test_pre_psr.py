@@ -30,6 +30,7 @@ def test_template_arrangement(temp_git_repo, sample_config):
     assert (fixture_dir / "templates" / "CHANGELOG.md.j2").exists()
 
 
+
 def test_commit_generation(temp_git_repo):
     """Test that commits are generated correctly."""
     # Create initial commit
