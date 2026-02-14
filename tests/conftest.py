@@ -14,14 +14,8 @@ def fixture_repo_root():
 
 @pytest.fixture
 def kodi_addon_fixture(fixture_repo_root):
-    """Return the path to the kodi-addon-fixture subdirectory."""
-    return fixture_repo_root / "kodi-addon-fixture"
-
-
-@pytest.fixture
-def pypi_fixture(fixture_repo_root):
-    """Return the path to the pypi-fixture subdirectory."""
-    return fixture_repo_root / "pypi-fixture"
+    """Return the root path as the fixture (no longer nested under kodi-addon-fixture/)."""
+    return fixture_repo_root
 
 
 @pytest.fixture

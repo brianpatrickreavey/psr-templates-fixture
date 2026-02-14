@@ -9,10 +9,10 @@ import subprocess
 
 def test_template_arrangement(kodi_addon_fixture):
     """Test that templates are arranged correctly in the fixture repo."""
-    # Run arranger on the real kodi-addon-fixture
+    # Run arranger on the fixture root
     from arranger.run import load_config, build_mappings, arrange_templates
 
-    # Load config from the actual kodi-addon-fixture pyproject.toml
+    # Load config from the fixture root pyproject.toml
     config = load_config(kodi_addon_fixture / "pyproject.toml")
 
     # Mock args for kodi addon mode
@@ -26,10 +26,9 @@ def test_template_arrangement(kodi_addon_fixture):
     mappings = build_mappings(config, args)
     arrange_templates(kodi_addon_fixture, mappings, override=True)
     
-    # Verify both templates are placed correctly
-    # Per PSR monorepo docs, template paths must include the fixture subdirectory structure
+    # Verify both templates are placed correctly in simplified structure
     assert (kodi_addon_fixture / "templates" / "CHANGELOG.md.j2").exists()
-    assert (kodi_addon_fixture / "templates" / "kodi-addon-fixture" / "script.module.example" / "addon.xml.j2").exists()
+    assert (kodi_addon_fixture / "templates" / "script.module.example" / "addon.xml.j2").exists()
 
 
 
