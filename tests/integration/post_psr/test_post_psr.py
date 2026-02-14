@@ -16,6 +16,11 @@ FIXTURE_REPO_ROOT = Path(__file__).parent.parent.parent.parent
 
 def test_version_number_extraction():
     """Test that version numbers are extracted correctly from PSR output."""
+    # Only validate real PSR output when PSR_VALIDATE_REAL=1 (GitHub Actions)
+    # In ACT (dry-run), PSR_VALIDATE_REAL=0, so this test is skipped
+    if os.getenv("PSR_VALIDATE_REAL") != "1":
+        pytest.skip("Skipping real PSR validation in dry-run mode (PSR_VALIDATE_REAL not set)")
+    
     # Validate real PSR output: check for version in CHANGELOG.md
     changelog_path = FIXTURE_REPO_ROOT / "CHANGELOG.md"
     if changelog_path.exists():
