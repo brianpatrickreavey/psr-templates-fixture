@@ -13,7 +13,7 @@ requires-python = ">=3.8"
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
 template_dir = "templates"
-commit_parser = "angular"
+commit_parser = "conventional"
 tag_format = "v{version}"
 allow_zero_version = true
 major_on_zero = false
