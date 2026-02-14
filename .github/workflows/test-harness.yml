@@ -48,7 +48,7 @@ jobs:
       UV_VENV: /tmp/venv
     defaults:
       run:
-        working-directory: kodi-addon-fixture
+        working-directory: ${{ github.workspace }}
     outputs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
@@ -85,7 +85,6 @@ jobs:
         continue-on-error: true
         uses: python-semantic-release/python-semantic-release@v10.5.3
         with:
-          directory: kodi-addon-fixture
           github_token: ${{ secrets.GITHUB_TOKEN }}
           commit: true
           push: true
@@ -95,7 +94,7 @@ jobs:
       - name: Debug - List files after PSR
         run: |
           echo "=== Current directory: $(pwd) ==="
-          echo "=== Files in kodi-addon-fixture/ after PSR ==="
+          echo "=== Files in repo root after PSR ==="
           ls -lhR .
           echo "=== Search for addon.xml files after PSR ==="
           find . -name "addon.xml*" -type f -exec ls -lh {} \;
