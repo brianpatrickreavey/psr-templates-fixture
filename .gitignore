@@ -1,0 +1,14 @@
+.vscode/
+__pycache__/
+.venv
+build
+*.egg-info
+dist
+*.pyc
+*.pyo
+*.pyd
+*.log
+.pytest_cache/
+.act/
+.artifacts/
+uv.lock
