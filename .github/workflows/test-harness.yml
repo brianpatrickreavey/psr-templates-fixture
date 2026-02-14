@@ -133,13 +133,13 @@ jobs:
           fetch-depth: 0
       - name: Build Kodi addon ZIP
         run: |
-          cd ${{ needs.kodi-check.outputs.kodi_directory }}
-          zip -r ../../${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip .
+          mkdir -p artifacts
+          zip -r artifacts/${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip ${{ needs.kodi-check.outputs.kodi_directory }}
       - name: Upload ZIP artifact
         uses: actions/upload-artifact@v4
         with:
           name: kodi-addon-zip
-          path: ${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip
+          path: artifacts/${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip
 
   kodi-publish:
     needs: [psr-execution, kodi-check, kodi-zip]
@@ -160,7 +160,7 @@ jobs:
           name: kodi-addon-zip
       - name: Upload ZIP to release
         run: |
-          gh release upload ${{ needs.psr-execution.outputs.tag }} ${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip --clobber
+          gh release upload ${{ needs.psr-execution.outputs.tag }} artifacts/${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip --clobber
 
   pre-cleanup-check:
     needs: [psr-execution, kodi-check, kodi-zip, kodi-publish]
