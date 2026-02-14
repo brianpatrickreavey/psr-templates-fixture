@@ -90,7 +90,6 @@ jobs:
           push: true
           tag: true
           vcs_release: true
-          no_operation_mode: ${{ env.ACT == 'true' }}
       - name: Debug - List files after PSR
         run: |
           echo "=== Current directory: $(pwd) ==="

@@ -18,6 +18,6 @@ runs:
       run: |
         source /tmp/venv/bin/activate
         cd ${{ inputs.fixture_dir }}
-        python-semantic-release --noop version > psr-dry-run.log
+        python-semantic-release version > psr-dry-run.log
       shell: bash
       working-directory: ${{ github.workspace }}

@@ -20,8 +20,8 @@ def test_version_number_extraction():
     changelog_path = FIXTURE_REPO_ROOT / "CHANGELOG.md"
     if changelog_path.exists():
         content = changelog_path.read_text()
-        # Check for version header (should be updated by PSR)
-        assert "## v" in content, "Changelog should contain version headers"
+        # Check for version header (should be updated by PSR when not in noop mode)
+        assert "## v" in content, "Changelog should contain version headers after PSR renders template"
     else:
         pytest.skip("CHANGELOG.md not found")
 
