@@ -158,7 +158,7 @@ jobs:
         run: |
           gh api repos/${{ github.repository }}/releases --jq '.[] | select(.assets != []) | {release: .tag_name, assets: [.assets[].name]}' || echo "No release assets found"
       - name: Sleep for inspection
-        run: sleep 60
+        run: sleep 1 # Add more time as needed
 
   post-psr-tests:
     needs: [psr-execution, kodi-check, kodi-zip, kodi-publish]

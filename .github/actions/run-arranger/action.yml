@@ -6,6 +6,6 @@ runs:
     - name: Run arranger
       run: |
         source /tmp/venv/bin/activate
-        python -c "from arranger.run import main; import sys; sys.argv = ['arranger.run', '--override']; main()"
+        python -m arranger.run --override
       shell: bash
-      working-directory: ${{ github.workspace }}
+      working-directory: ${{ github.workspace }}/kodi-addon-fixture
