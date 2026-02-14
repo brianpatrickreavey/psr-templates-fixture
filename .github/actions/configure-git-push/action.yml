@@ -1,0 +1,20 @@
+name: Configure Git and Push Branch
+description: Configure git credentials and push the test branch
+
+inputs:
+  run_id:
+    description: The run ID for the branch name
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Configure git for push
+      shell: bash
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+    - name: Push test branch
+      shell: bash
+      run: |
+        git push -f origin HEAD:ci/${{ inputs.run_id }}

@@ -1,0 +1,23 @@
+name: Check Kodi Project Configuration
+description: Check if this is a Kodi project and output configuration details
+
+outputs:
+  is_kodi:
+    description: Whether this is a Kodi project (true/false)
+    value: ${{ steps.check.outputs.is_kodi }}
+  kodi_project_name:
+    description: The Kodi project name if applicable
+    value: ${{ steps.check.outputs.kodi_project_name }}
+  kodi_directory:
+    description: The Kodi project directory path
+    value: ${{ steps.check.outputs.kodi_directory }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check for Kodi project and set env vars
+      id: check
+      shell: bash
+      working-directory: kodi-addon-fixture
+      run: |
+        python ../tools/check_kodi.py pyproject.toml >> $GITHUB_OUTPUT

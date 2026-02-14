@@ -1,0 +1,12 @@
+name: Install Full Dev Dependencies
+description: Install psr-templates and full dev group in the virtual environment
+
+runs:
+  using: composite
+  steps:
+    - name: Install dev dependencies
+      shell: bash
+      run: |
+        source /tmp/venv/bin/activate
+        uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git
+        uv sync --group dev

@@ -31,20 +31,15 @@ jobs:
       - name: Create test branch
         uses: ./.github/actions/create-test-branch
       - name: Install dev dependencies
-        run: |
-          source /tmp/venv/bin/activate
-          uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git pytest
+        uses: ./.github/actions/install-dev-dependencies-base
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
       - name: Generate test commits
         uses: ./.github/actions/run-generate-commits
-      - name: Configure git for push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-      - name: Push test branch
-        run: |
-          git push -f origin HEAD:ci/${{ github.event.client_payload.run_id }}
+      - name: Configure git and push
+        uses: ./.github/actions/configure-git-push
+        with:
+          run_id: ${{ github.event.client_payload.run_id }}
 
   psr-execution:
     needs: pre-psr-tests
@@ -105,9 +100,7 @@ jobs:
           fetch-depth: 0
       - name: Check for Kodi project and set env vars
         id: check
-        working-directory: kodi-addon-fixture
-        run: |
-          python ../tools/check_kodi.py pyproject.toml >> $GITHUB_OUTPUT
+        uses: ./.github/actions/check-kodi-project
 
   kodi-zip:
     needs: [psr-execution, kodi-check]
@@ -189,10 +182,7 @@ jobs:
         run: |
           git checkout ci/${{ github.event.client_payload.run_id }} || git checkout -b ci/${{ github.event.client_payload.run_id }}
       - name: Install dev dependencies
-        run: |
-          source /tmp/venv/bin/activate
-          uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git
-          uv sync --group dev
+        uses: ./.github/actions/install-dev-dependencies-full
       - name: Run post-PSR integration tests
         uses: ./.github/actions/run-post-psr-tests
 

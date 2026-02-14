@@ -23,10 +23,7 @@ jobs:
       - name: Create test branch
         uses: ./.github/actions/create-test-branch
       - name: Install dev dependencies
-        working-directory: ${{ github.workspace }}
-        run: |
-          source /tmp/venv/bin/activate
-          uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git pytest
+        uses: ./.github/actions/install-dev-dependencies-base
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
       - name: Run arranger
@@ -35,9 +32,7 @@ jobs:
         uses: ./.github/actions/run-generate-commits
       - name: Check for Kodi project and set env vars
         id: check
-        working-directory: kodi-addon-fixture
-        run: |
-          python ../tools/check_kodi.py ../pyproject.toml >> $GITHUB_OUTPUT
+        uses: ./.github/actions/check-kodi-project
       - name: Pre-cleanup check (dry-run simulation)
         run: |
           echo "Simulated tags:" && git tag || echo "No tags"
