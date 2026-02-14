@@ -1,35 +1,44 @@
-{#
-    This changelog template controls which changelog creation occurs
-    based on which mode is provided.
+# Changelog
 
-    Modes:
-        - init: Initialize a full changelog from scratch
-        - update: Insert new version details where the placeholder exists in the current changelog
+All notable changes to this project will be documented in this file.
 
-#}{%  set insertion_flag = ctx.changelog_insertion_flag
-%}{#  set unreleased_commits = ctx.history.unreleased | dictsort #}
+## v0.1.0 (2026-02-14)
 
-{%- set section_order = ["features", "bug fixes", "performance improvements", "documentation", "continuous integration", "refactoring", "testing", "chores"] -%}
-{%- set unreleased_commits = [] -%}
-{%- for section in section_order -%}
-{%- if section in ctx.history.unreleased -%}
-{%- set _ = unreleased_commits.append((section, ctx.history.unreleased[section])) -%}
-{%- endif -%}
-{%- endfor -%}
-{%- for section, commits in ctx.history.unreleased.items() -%}
-{%- if section not in section_order -%}
-{%- set _ = unreleased_commits.append((section, commits)) -%}
-{%- endif -%}
-{%- endfor -%}
+### Features
+- improve user interface (ci-test-run)
+- add new functionality (ci-test-run)
+- implement new major feature (ci-test-run)
+- add breaking API change (ci-test-run)
+- integration with workflows - verify arranger config
+- phase 1c - complete post-PSR assertions and add validation tests
+- phase 1b - implement placeholder tests with commit validation
 
-{%  set releases = ctx.history.released.values() | list
-%}{#
-#}{%  if ctx.changelog_mode == "init"
-%}{%    include ".components/changelog_init.md.j2"
-%}{#
-#}{%  elif ctx.changelog_mode == "update"
-%}{%    set prev_changelog_file = ctx.prev_changelog_file
-%}{%    include ".components/changelog_update.md.j2"
-%}{#
-#}{%  endif
-%}
+### Bug Fixes
+- correct typo in error message (ci-test-run)
+- resolve bug in data processing (ci-test-run)
+- resolve compatibility issue (ci-test-run)
+- specify kodi-addon-fixture directory for PSR execution
+- update arranger action to run from kodi-addon-fixture directory
+- remove uv sync from install-dev-dependencies-full composite
+- activate venv before installing dependencies in post-psr-tests
+- check correct pyproject.toml for kodi project detection
+- install arranger dependencies in psr-execution job
+- phase 1a - repair test fixtures and path references
+
+### Performance Improvements
+- optimize database queries (ci-test-run)
+
+### Documentation
+- update API documentation (ci-test-run)
+
+### Refactoring
+- clean up code structure (ci-test-run)
+- extract inlined workflow commands into composite actions
+
+### Testing
+- add unit tests (ci-test-run)
+- set PSR_VALIDATE_REAL=0 in ACT workflow to skip real GitHub API checks
+- update pre-PSR tests to check for templates in templates/ directory
+
+### Chores
+- update dependencies (ci-test-run)
