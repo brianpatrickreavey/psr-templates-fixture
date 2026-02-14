@@ -1,8 +1,14 @@
 name: 'Run Arranger'
-description: 'Run the arranger script'
+description: 'Install psr-templates and run the arranger script'
 runs:
   using: 'composite'
   steps:
+    - name: Install arranger
+      run: |
+        source /tmp/venv/bin/activate
+        uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git
+      shell: bash
+      working-directory: ${{ github.workspace }}
     - name: Run arranger
       run: |
         source /tmp/venv/bin/activate

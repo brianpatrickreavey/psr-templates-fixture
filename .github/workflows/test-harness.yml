@@ -63,14 +63,8 @@ jobs:
         uses: ./.github/actions/install-uv
       - name: Set up venv
         uses: ./.github/actions/setup-venv
-      - name: Install arranger
-        run: |
-          source /tmp/venv/bin/activate
-          uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git
       - name: Run arranger
-        run: |
-          source /tmp/venv/bin/activate
-          python -m arranger.run
+        uses: ./.github/actions/run-arranger
       - name: Debug - List files before PSR
         run: |
           echo "=== Current directory: $(pwd) ==="
