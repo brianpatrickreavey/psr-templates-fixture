@@ -71,6 +71,15 @@ jobs:
         run: |
           source /tmp/venv/bin/activate
           python -m arranger.run
+      - name: Debug - List files before PSR
+        run: |
+          echo "=== Current directory: $(pwd) ==="
+          echo "=== Files in kodi-addon-fixture/ ==="
+          ls -lhR .
+          echo "=== Search for addon.xml files ==="
+          find . -name "addon.xml*" -type f -exec ls -lh {} \;
+          echo "=== Templates directory contents ==="
+          ls -lh templates/ || echo "No templates directory"
       - name: Run PSR
         id: psr
         continue-on-error: true
@@ -83,6 +92,17 @@ jobs:
           tag: true
           vcs_release: true
           no_operation_mode: ${{ env.ACT == 'true' }}
+      - name: Debug - List files after PSR
+        run: |
+          echo "=== Current directory: $(pwd) ==="
+          echo "=== Files in kodi-addon-fixture/ after PSR ==="
+          ls -lhR .
+          echo "=== Search for addon.xml files after PSR ==="
+          find . -name "addon.xml*" -type f -exec ls -lh {} \;
+          echo "=== Templates directory contents after PSR ==="
+          ls -lh templates/ || echo "No templates directory"
+          echo "=== Check if addon.xml was updated ==="
+          cat script.module.example/addon.xml | grep -E "version|name" || echo "Could not read addon.xml"
 
   kodi-check:
     needs: psr-execution
