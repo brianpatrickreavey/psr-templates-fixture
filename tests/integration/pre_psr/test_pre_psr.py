@@ -27,8 +27,9 @@ def test_template_arrangement(kodi_addon_fixture):
     arrange_templates(kodi_addon_fixture, mappings, override=True)
     
     # Verify both templates are placed correctly
+    # Per PSR monorepo docs, template paths must include the fixture subdirectory structure
     assert (kodi_addon_fixture / "templates" / "CHANGELOG.md.j2").exists()
-    assert (kodi_addon_fixture / "templates" / "script.module.example" / "addon.xml.j2").exists()
+    assert (kodi_addon_fixture / "templates" / "kodi-addon-fixture" / "script.module.example" / "addon.xml.j2").exists()
 
 
 

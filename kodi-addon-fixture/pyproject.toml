@@ -32,4 +32,5 @@ prerelease = false
 [tool.arranger]
 use-default-kodi-addon-structure = true
 kodi-project-name = "script.module.example"
+fixture-subdir = "kodi-addon-fixture"
 source-mappings = {}
