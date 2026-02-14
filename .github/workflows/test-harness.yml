@@ -49,6 +49,8 @@ jobs:
   psr-execution:
     needs: pre-psr-tests
     runs-on: ubuntu-latest
+    env:
+      UV_VENV: /tmp/venv
     defaults:
       run:
         working-directory: kodi-addon-fixture
@@ -62,8 +64,18 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
+      - name: Install arranger
+        run: |
+          source /tmp/venv/bin/activate
+          uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git
       - name: Run arranger
-        run: python -m arranger.run
+        run: |
+          source /tmp/venv/bin/activate
+          python -m arranger.run
       - name: Run PSR
         id: psr
         continue-on-error: true
