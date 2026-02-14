@@ -14,10 +14,10 @@ runs:
         uv pip install python-semantic-release
       shell: bash
       working-directory: ${{ github.workspace }}
-    - name: Run PSR (render templates, no release/push)
+    - name: Run PSR (render templates, create local tags, no GitHub push)
       run: |
         source /tmp/venv/bin/activate
         cd ${{ inputs.fixture_dir }}
-        python-semantic-release publish --ci false --no-push --no-tag --no-vcs-release 2>&1 | tee psr-run.log
+        python-semantic-release version --changelog --commit --tag --no-push --no-vcs-release 2>&1 | tee psr-run.log
       shell: bash
       working-directory: ${{ github.workspace }}
