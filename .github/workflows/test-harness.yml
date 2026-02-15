@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  pre-psr-tests:
+  pre-release-tests:
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -36,7 +36,7 @@ jobs:
         uses: ./.github/actions/run-pre-psr-tests
 
   release-phase-1:
-    needs: pre-psr-tests
+    needs: pre-release-tests
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -77,7 +77,7 @@ jobs:
           vcs_release: true
 
   release-phase-2:
-    needs: release-phase-1
+    needs: [kodi-publish-1]
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -118,7 +118,7 @@ jobs:
           vcs_release: true
 
   release-phase-3:
-    needs: release-phase-2
+    needs: [kodi-publish-2]
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -333,7 +333,7 @@ jobs:
           tag: ${{ needs.release-phase-3.outputs.tag }}
           phase: 'phase-3'
 
-  post-psr-tests:
+  post-release-tests:
     needs: [kodi-publish-3]
     runs-on: ubuntu-latest
     env:
