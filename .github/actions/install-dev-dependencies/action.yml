@@ -1,11 +1,13 @@
-name: Install Base Dev Dependencies
-description: Install psr-templates and pytest in the virtual environment
+name: 'Install Base Dev Dependencies'
+description: 'Install psr-templates and pytest in the virtual environment'
 
 runs:
-  using: composite
+  using: 'composite'
   steps:
     - name: Install dev dependencies
       shell: bash
       run: |
         source /tmp/venv/bin/activate
-        uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git pytest
+        uv pip install pytest
+        which git
+        uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git

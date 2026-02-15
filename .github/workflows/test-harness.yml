@@ -63,6 +63,8 @@ jobs:
         uses: ./.github/actions/install-uv
       - name: Set up venv
         uses: ./.github/actions/setup-venv
+      - name: Install dev dependencies
+        uses: ./.github/actions/install-dev-dependencies
       - name: Run arranger
         uses: ./.github/actions/run-arranger
       - name: Debug - List files before PSR
