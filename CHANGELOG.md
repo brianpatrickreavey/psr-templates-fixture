@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.0.0 (2026-02-15)
+
+### Features
+- improve user interface (ci-test-run)
+- add new functionality (ci-test-run)
+
+### Refactoring
+- clean up code structure (ci-test-run)
+
 ## v0.2.0 (2026-02-15)
 
 ### Features
