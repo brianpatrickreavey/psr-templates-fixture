@@ -3,6 +3,13 @@ description: 'Create a test branch for CI'
 runs:
   using: 'composite'
   steps:
-    - name: Create test branch
-      run: git checkout -b ci/${{ github.event.client_payload.run_id }}
+    - name: Create and push test branch
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git config --local url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+        git checkout -b ci/${{ github.event.client_payload.run_id }}
+        git push -u origin ci/${{ github.event.client_payload.run_id }}
