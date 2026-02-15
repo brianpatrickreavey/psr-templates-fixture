@@ -7,7 +7,7 @@ runs:
     - name: Install dev dependencies
       shell: bash
       run: |
+        set -x
         source /tmp/venv/bin/activate
         uv pip install pytest
-        which git
         uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git

@@ -1,0 +1,32 @@
+name: Generate and Push Commits
+description: Generate test commits for a specific phase and push to remote
+
+inputs:
+  phase:
+    description: The phase number (0, 1, 2, etc.)
+    required: true
+  branch:
+    description: The branch name to push to
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Generate phase commits
+      shell: bash
+      run: |
+        python tools/generate_commits.py --phase ${{ inputs.phase }} .
+    - name: Configure git and commit
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git config --local url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+        git add -A
+        git commit -m "Phase ${{ inputs.phase }}: test commits (ci-test-run)" || true
+    - name: Push commits
+      shell: bash
+      run: |
+        git push origin HEAD:${{ inputs.branch }}

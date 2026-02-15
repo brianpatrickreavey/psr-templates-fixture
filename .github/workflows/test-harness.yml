@@ -34,10 +34,6 @@ jobs:
         uses: ./.github/actions/install-dev-dependencies
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
-      - name: Configure git and push
-        uses: ./.github/actions/configure-git-push
-        with:
-          run_id: ${{ github.event.client_payload.run_id }}
 
   release-phase-1:
     needs: pre-psr-tests
@@ -63,14 +59,11 @@ jobs:
         uses: ./.github/actions/setup-venv
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-dependencies
-      - name: Generate phase 0 commits
-        run: |
-          python tools/generate_commits.py --phase 0 .
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add -A
-          git commit -m "Phase 0: test commits for release 0.1.0 (ci-test-run)" || true
-          git push origin ci/${{ github.event.client_payload.run_id }}
+      - name: Generate and push phase 0 commits
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '0'
+          branch: ci/${{ github.event.client_payload.run_id }}
       - name: Run arranger
         uses: ./.github/actions/run-arranger
       - name: Run PSR (Release 0.1.0)
@@ -107,14 +100,11 @@ jobs:
         uses: ./.github/actions/setup-venv
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-dependencies
-      - name: Generate phase 1 commits
-        run: |
-          python tools/generate_commits.py --phase 1 .
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add -A
-          git commit -m "Phase 1: test commits for release 0.2.0 (ci-test-run)" || true
-          git push origin ci/${{ github.event.client_payload.run_id }}
+      - name: Generate and push phase 1 commits
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '1'
+          branch: ci/${{ github.event.client_payload.run_id }}
       - name: Run arranger
         uses: ./.github/actions/run-arranger
       - name: Run PSR (Release 0.2.0)
@@ -151,14 +141,11 @@ jobs:
         uses: ./.github/actions/setup-venv
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-dependencies
-      - name: Generate phase 2 commits (breaking)
-        run: |
-          python tools/generate_commits.py --phase 2 .
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add -A
-          git commit -m "Phase 2: test commits for release 1.0.0 (ci-test-run)" || true
-          git push origin ci/${{ github.event.client_payload.run_id }}
+      - name: Generate and push phase 2 commits
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '2'
+          branch: ci/${{ github.event.client_payload.run_id }}
       - name: Run arranger
         uses: ./.github/actions/run-arranger
       - name: Run PSR (Release 1.0.0 - force major)

@@ -7,7 +7,7 @@ All commits include " (ci-test-run)" marker for exclusion.
 
 Usage:
   generate_commits.py [--phase 0-4] [--all] <fixture_repo_path>
-  
+
 Options:
   --phase N     Generate only phase N (0-4)
   --all         Generate all phases (default if no phase specified)
@@ -71,7 +71,7 @@ def main():
     phase_to_run = None
     run_all = True
     repo_path = None
-    
+
     for arg in sys.argv[1:]:
         if arg == '--all':
             run_all = True
@@ -101,13 +101,13 @@ def main():
                     pass
         elif not arg.startswith('-'):
             repo_path = Path(arg)
-    
+
     if repo_path is None:
         print("Usage: generate_commits.py [--phase N] [--all] <fixture_repo_path>")
         print("  --phase N    Generate only phase N (0-4)")
         print("  --all        Generate all phases (default if no phase specified)")
         sys.exit(1)
-    
+
     if not repo_path.exists():
         print(f"Repo path {repo_path} does not exist")
         sys.exit(1)
@@ -134,7 +134,7 @@ def main():
         3: phase_3_patch_bump,
         4: phase_4_no_bump,
     }
-    
+
     if run_all:
         # Generate all phases
         for i in range(5):
