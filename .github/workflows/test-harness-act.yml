@@ -23,6 +23,11 @@ jobs:
         uses: ./.github/actions/install-uv
       - name: Set up venv
         uses: ./.github/actions/setup-venv
+      - name: Upgrade git (fix segfault in catthehacker image)
+        run: |
+          apt-get update -qq && apt-get install -y git 2>&1 | grep -v "^Get:\|^Hit:\|^Reading" || true
+          git --version
+        shell: bash
       - name: Diagnostic - Test git remote operations
         run: |
           echo "=== Testing git remote-https functionality ==="
