@@ -23,21 +23,6 @@ jobs:
         uses: ./.github/actions/install-uv
       - name: Set up venv
         uses: ./.github/actions/setup-venv
-      - name: Upgrade git (fix segfault in catthehacker image)
-        run: |
-          apt-get update -qq && apt-get install -y git 2>&1 | grep -v "^Get:\|^Hit:\|^Reading" || true
-          git --version
-        shell: bash
-      - name: Diagnostic - Test git remote operations
-        run: |
-          echo "=== Testing git remote-https functionality ==="
-          git --version
-          echo "=== Attempting to fetch psr-templates commit ==="
-          cd /tmp && rm -rf test-git-fetch && mkdir test-git-fetch && cd test-git-fetch
-          git init
-          git fetch --force --update-head-ok 'https://github.com/brianpatrickreavey/psr-templates.git' '+106e3378c5f9b6733afe43886330e7ac9abc19b4:refs/commit/106e3378c5f9b6733afe43886330e7ac9abc19b4' 2>&1
-          echo "Git fetch exit code: $?"
-        shell: bash
       - name: Create test branch
         uses: ./.github/actions/create-test-branch
       - name: Install dev dependencies
