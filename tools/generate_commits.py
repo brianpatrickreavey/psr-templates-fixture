@@ -129,7 +129,7 @@ def main():
     # Run requested phases
     phases = {
         0: phase_0_breaking_changes,
-        1: phase_1_major_bump,
+        1: phase_1_minor_bump,
         2: phase_2_minor_bump,
         3: phase_3_patch_bump,
         4: phase_4_no_bump,
