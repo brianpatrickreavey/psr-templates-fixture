@@ -17,8 +17,6 @@ jobs:
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
-      - name: Pre-cleanup local tags
-        run: git tag -d $(git tag) || true
       - name: Install uv
         uses: ./.github/actions/install-uv
       - name: Set up venv
