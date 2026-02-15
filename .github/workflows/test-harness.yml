@@ -75,6 +75,12 @@ jobs:
           push: true
           tag: true
           vcs_release: true
+      - name: Upload CHANGELOG to v0.1.0 release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ steps.psr_1.outputs.tag }} CHANGELOG.md --clobber
+        if: steps.psr_1.outputs.tag
 
   release-phase-2:
     needs: [kodi-publish-1]
@@ -116,6 +122,12 @@ jobs:
           push: true
           tag: true
           vcs_release: true
+      - name: Upload CHANGELOG to v0.2.0 release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ steps.psr_2.outputs.tag }} CHANGELOG.md --clobber
+        if: steps.psr_2.outputs.tag
 
   release-phase-3:
     needs: [kodi-publish-2]
@@ -158,6 +170,12 @@ jobs:
           push: true
           tag: true
           vcs_release: true
+      - name: Upload CHANGELOG to v1.0.0 release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ steps.psr_3.outputs.tag }} CHANGELOG.md --clobber
+        if: steps.psr_3.outputs.tag
 
   kodi-check-1:
     needs: release-phase-1
