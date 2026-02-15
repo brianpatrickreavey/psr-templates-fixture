@@ -1,11 +1,135 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="script.module.example" name="Example Module" version="0.0.1" provider-name="Test">
+<addon id="script.module.test-semantic-release-for-kodi" name="Test Semantic Release Module" version="0.1.0" provider-name="Test Author">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
     </requires>
     <extension point="xbmc.python.module" library="lib"/>
     <extension point="xbmc.addon.metadata">
-        <summary>Example Kodi addon for PSR testing</summary>
-        <description>Placeholder for testing addon.xml updates</description>
+        <summary>Test module for semantic release functionality</summary>
+        <description>Test module demonstrating automated semantic releases with conventional commits.</description>
+        <platform>all</platform>
+        <news>
+Release v0.1.0
+
+
+[feat] improve user interface (ci-test-run)
+[feat] add new functionality (ci-test-run)
+[feat] implement new major feature (ci-test-run)
+[feat] add breaking API change (ci-test-run)
+[feat] integration with workflows - verify arranger config
+[feat] - Confirm kodi-addon-fixture/pyproject.toml has [tool.arranger] config
+- Verify arranger correctly loads fixture config and generates mappings
+- Arranger generates both addon.xml and CHANGELOG.md templates via config
+- Test archanger integration: Config → {'use-default-kodi-addon-structure': true}
+- Result mappings: {'addon.xml': '...', 'CHANGELOG.md': '...'}
+- Workflow integration ready: arranger will be called in kodi-addon-fixture directory
+- Templates will be placed correctly for PSR execution
+[feat] phase 1c - complete post-PSR assertions and add validation tests
+[feat] - Enhance test_changelog_generation to handle missing files gracefully
+- Complete test_cleanup_after_failure function properly
+- Add test_changelog_format_validity to verify Markdown structure
+- Add test_tag_format to validate semantic versioning format
+- Add test_mock_response_structure to ensure mock data integrity
+- Make changelog assertions more flexible for real PSR output
+- All 10 post-PSR tests now pass with proper mock/real validation split
+- Total integration test suite: 19 tests across pre_psr, post_psr, and phases
+[feat] phase 1b - implement placeholder tests with commit validation
+[feat] - Replace empty placeholder tests with real commit generation and validation
+- Phase 2: Feature additions (feat:) with refactoring
+- Phase 3: Bug fixes (fix:) with performance improvements
+- Phase 4: Non-semantic commits (ci:, test:, chore:)
+- Add get_commit_messages() helper to extract and parse git log
+- Tests validate commit message types and (ci-test-run) markers
+- Each test uses unique ci/phase-* branch for isolation
+[fix] correct typo in error message (ci-test-run)
+[fix] resolve bug in data processing (ci-test-run)
+[fix] resolve compatibility issue (ci-test-run)
+[fix] remove early Pre-cleanup git step that breaks ACT
+[fix] - Early git tag -d was added in commit 7a97c03 at 16:28
+- This runs before uv/venv setup on broken system git
+- Final cleanup step already handles tag cleanup
+- Removing early step should restore ACT functionality
+[fix] upgrade git in ACT to resolve segfault
+[fix] - catthehacker image was updated on Feb 8 with broken git-remote-https
+- docker system prune -af removed cached image, pulled new version
+- Adding git upgrade step to get working version
+- This explains why ACT was working 7 hours ago but not now
+[fix] prevent double installation of psr-templates in ACT
+[fix] - Revert 'consolidate arranger setup' that moved install to run-arranger
+- Remove install step from run-arranger composite (was causing double-install)
+- Add install-dev-dependencies to psr-execution job in test-harness.yml
+- Now all jobs that need arranger call install-dev-dependencies first
+- Prevents double git fetch in ACT environment (fixes segfault issue)
+[fix] skip version number test in dry-run mode (ACT)
+[fix] - test_version_number_extraction now skips when PSR_VALIDATE_REAL != 1
+- This is appropriate for ACT (dry-run) where no actual releases occur
+- Allows ACT tests to pass while maintaining full validation on GitHub Actions
+- Test suite now correctly differentiates between dry-run (act) and real (GitHub)
+[fix] remove strict addon.xml id check in test
+[fix] - Template provides its own id value (script.module.test-semantic-release-for-kodi)
+- Real validation is that version was updated correctly
+- Remove name check for same reason
+[fix] specify download path for artifact in kodi-publish job
+[fix] - download-artifact needs explicit 'path' parameter to download into artifacts/
+- Ensures file is at correct location for gh release upload command
+[fix] simplify kodi-zip artifact creation and path handling
+[fix] - Create zip file in artifacts/ directory with clear path
+- Use workspace-relative paths instead of cd + ../../ navigation
+- Update kodi-publish to find artifact in correct location
+[fix] remove committed template files and gitignore templates/
+[fix] - Templates should only be generated by arranger at runtime
+- Remove templates/ from git tracking
+- Add templates/ to .gitignore
+[fix] use conventional commit parser instead of deprecated angular
+[fix] - Change commit_parser from 'angular' to 'conventional'
+- Angular parser is deprecated and will be removed in PSR v11
+- Conventional is the recommended parser going forward
+[fix] enable local git tags and complete template rendering in PSR
+[fix] - Change from --no-tag to --tag to create local git tags (testable)
+- Prevent GitHub push/release with --no-push and --no-vcs-release
+- Keep --changelog and --commit for full local workflow validation
+- Allows integration tests to validate tags after PSR execution
+[fix] run actual PSR publish instead of dry-run version query
+[fix] - Change from python-semantic-release version to publish
+- Add flags to prevent actual GitHub operations (no push, tag, release)
+- Allows template rendering while keeping local testing safe
+[fix] remove noop mode so PSR actually renders templates in local testing
+[fix] - Remove --noop from run-psr-locally action
+- Remove no_operation_mode from test-harness workflow
+- Update test to validate actual rendered changelog
+- act now runs full PSR with template rendering, just won't create real releases
+[fix] update check_kodi.py for flattened fixture structure
+[fix] - Remove kodi-addon-fixture prefix from kodi_directory output
+- Directory should be just the project name since everything is at repo root
+[fix] update fixture config and test to use correct PSR monorepo template structure
+[fix] add template_dir to PSR config and update test expectations
+[fix] specify kodi-addon-fixture directory for PSR execution
+[fix] update arranger action to run from kodi-addon-fixture directory
+[fix] remove uv sync from install-dev-dependencies-full composite
+[fix] The fixture project doesn't have a [dependency-groups.dev] section in pyproject.toml, causing 'uv sync --group dev' to fail.
+[fix] Since uv pip install already installed all needed dependencies (including pytest), the sync is redundant. Remove it to fix the post-psr-tests job.
+[fix] activate venv before installing dependencies in post-psr-tests
+[fix] The post-psr-tests job had the venv setup steps but wasn't activating the virtual environment before running uv pip install and uv sync.
+[fix] Add 'source /tmp/venv/bin/activate' to properly activate the venv created by the setup-venv action.
+[fix] check correct pyproject.toml for kodi project detection
+[fix] The kodi-check job was running from kodi-addon-fixture directory but checking ../pyproject.toml (the root). The arranger config with kodi-project-name is in kodi-addon-fixture/pyproject.toml.
+[fix] Change the check_kodi.py invocation to use pyproject.toml (local file) instead of ../pyproject.toml so it correctly detects kodi projects.
+[fix] install arranger dependencies in psr-execution job
+[fix] The psr-execution job was attempting to run the arranger module without installing the psr-templates package first, causing a ModuleNotFoundError.
+[fix] Add steps to:
+- Install uv package manager
+- Set up virtual environment
+- Install psr-templates package from GitHub
+- Source venv before running arranger
+[fix] This ensures the arranger module is available when the PSR execution job runs.
+[fix] phase 1a - repair test fixtures and path references
+[fix] - Update temp_git_repo fixture to create actual pyproject.toml with [tool.arranger] config
+- Create templates directory and initial commit for realistic test setup
+- Fix test_pre_psr.py to load config from temp_git_repo/pyproject.toml instead of pytest cwd
+- Add FIXTURE_REPO_ROOT constant to test_post_psr.py for consistent path resolution
+- Replace hardcoded relative paths (../../, ../) with FIXTURE_REPO_ROOT-relative paths
+- Tests now work regardless of pytest invocation directory
+- Fixes FileExistsError in template arrangement test by removing duplicate source-mappings
+        </news>
     </extension>
 </addon>
