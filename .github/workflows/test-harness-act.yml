@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
+      - name: Pre-cleanup local tags
+        run: git tag -d $(git tag) || true
       - name: Install uv
         uses: ./.github/actions/install-uv
       - name: Set up venv
@@ -43,6 +45,15 @@ jobs:
         with:
           fixture_dir: .
       - name: Run post-PSR integration tests
+        uses: ./.github/actions/run-post-psr-tests
+      - name: Clean up test branch
+        if: always()
+        run: |
+          git checkout main || true
+          git branch -D ci/${{ github.event.client_payload.run_id }} 2>/dev/null || true
+      - name: Final cleanup local tags
+        if: always()
+        run: git tag -d $(git tag) || trueun post-PSR integration tests
         uses: ./.github/actions/run-post-psr-tests
       - name: Clean up test branch
         if: always()

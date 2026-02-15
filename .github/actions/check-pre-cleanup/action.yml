@@ -1,0 +1,23 @@
+name: 'Check Pre-cleanup State'
+description: 'Check and display state of git tags and releases before cleanup'
+runs:
+  using: 'composite'
+  steps:
+    - name: List tags
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh api repos/brianpatrickreavey/psr-templates-fixture/git/refs/tags --jq '.[] | .ref' || echo "No tags found"
+    - name: List releases
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh api repos/brianpatrickreavey/psr-templates-fixture/releases --jq '.[] | {tag: .tag_name, assets: (.assets | length)}' || echo "No releases found"
+    - name: List artifacts on releases
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh api repos/brianpatrickreavey/psr-templates-fixture/releases --jq '.[] | select(.assets != []) | {release: .tag_name, assets: [.assets[].name]}' || echo "No release assets found"
+

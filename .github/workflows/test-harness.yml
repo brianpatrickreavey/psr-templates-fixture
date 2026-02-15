@@ -128,14 +128,11 @@ jobs:
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
       - name: Build Kodi addon ZIP
-        run: |
-          mkdir -p artifacts
-          zip -r artifacts/${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip ${{ needs.kodi-check.outputs.kodi_directory }}
-      - name: Upload ZIP artifact
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/build-kodi-zip
         with:
-          name: kodi-addon-zip
-          path: artifacts/${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip
+          kodi_project_name: ${{ needs.kodi-check.outputs.kodi_project_name }}
+          kodi_directory: ${{ needs.kodi-check.outputs.kodi_directory }}
+          version: ${{ needs.psr-execution.outputs.version }}
 
   kodi-publish:
     needs: [psr-execution, kodi-check, kodi-zip]
@@ -150,30 +147,23 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - name: Download ZIP artifact
-        uses: actions/download-artifact@v4
+      - name: Publish Kodi ZIP to release
+        uses: ./.github/actions/publish-kodi-zip
         with:
-          name: kodi-addon-zip
-          path: artifacts
-      - name: Upload ZIP to release
-        run: |
-          gh release upload ${{ needs.psr-execution.outputs.tag }} artifacts/${{ needs.kodi-check.outputs.kodi_project_name }}-${{ needs.psr-execution.outputs.version }}.zip --clobber
+          kodi_project_name: ${{ needs.kodi-check.outputs.kodi_project_name }}
+          version: ${{ needs.psr-execution.outputs.version }}
+          tag: ${{ needs.psr-execution.outputs.tag }}
 
   pre-cleanup-check:
     needs: [psr-execution, kodi-check, kodi-zip, kodi-publish]
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: List tags
-        run: |
-          gh api repos/${{ github.repository }}/git/refs/tags --jq '.[] | .ref' || echo "No tags found"
-      - name: List releases
-        run: |
-          gh api repos/${{ github.repository }}/releases --jq '.[] | {tag: .tag_name, assets: (.assets | length)}' || echo "No releases found"
-      - name: List artifacts on releases
-        run: |
-          gh api repos/${{ github.repository }}/releases --jq '.[] | select(.assets != []) | {release: .tag_name, assets: [.assets[].name]}' || echo "No release assets found"
-      - name: Sleep for inspection
-        run: sleep 1 # Add more time as needed
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+      - name: Check pre-cleanup state
+        uses: ./.github/actions/check-pre-cleanup
 
   post-psr-tests:
     needs: [psr-execution, kodi-check, kodi-zip, kodi-publish]

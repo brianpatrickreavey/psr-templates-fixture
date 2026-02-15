@@ -1,0 +1,24 @@
+name: 'Publish Kodi ZIP to Release'
+description: 'Download and upload Kodi addon ZIP to GitHub release'
+inputs:
+  kodi_project_name:
+    description: 'Name of the Kodi project'
+    required: true
+  version:
+    description: 'Version string for the ZIP filename'
+    required: true
+  tag:
+    description: 'Git tag/release to upload to'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Download ZIP artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: kodi-addon-zip
+        path: artifacts
+    - name: Upload ZIP to release
+      run: |
+        gh release upload ${{ inputs.tag }} artifacts/${{ inputs.kodi_project_name }}-${{ inputs.version }}.zip --clobber
+      shell: bash
