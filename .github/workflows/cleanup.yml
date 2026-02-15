@@ -1,0 +1,27 @@
+name: PSR Test Harness Cleanup
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: The run ID of the test branch to clean up (e.g., gha-test-run-20260215-123456)
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+
+      - name: Clean up test branch
+        run: |
+          git checkout main
+          git branch -D ci/${{ github.event.inputs.run_id }} || true
+          git push origin --delete ci/${{ github.event.inputs.run_id }} || true
+
+      - name: Clean up tags, releases, and branches
+        uses: ./.github/actions/cleanup-tags-releases

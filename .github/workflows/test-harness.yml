@@ -159,7 +159,119 @@ jobs:
           tag: true
           vcs_release: true
 
-  kodi-check:
+  kodi-check-1:
+    needs: release-phase-1
+    runs-on: ubuntu-latest
+    outputs:
+      is_kodi: ${{ steps.check.outputs.is_kodi }}
+      kodi_project_name: ${{ steps.check.outputs.kodi_project_name }}
+      kodi_directory: ${{ steps.check.outputs.kodi_directory }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Check for Kodi project (Phase 1)
+        id: check
+        uses: ./.github/actions/check-kodi-project
+
+  kodi-zip-1:
+    needs: [release-phase-1, kodi-check-1]
+    if: needs.kodi-check-1.outputs.is_kodi == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Build Kodi addon ZIP (Phase 1 - v0.1.0)
+        uses: ./.github/actions/build-kodi-zip
+        with:
+          kodi_project_name: ${{ needs.kodi-check-1.outputs.kodi_project_name }}
+          kodi_directory: ${{ needs.kodi-check-1.outputs.kodi_directory }}
+          version: ${{ needs.release-phase-1.outputs.version }}
+
+  kodi-publish-1:
+    needs: [release-phase-1, kodi-check-1, kodi-zip-1]
+    if: needs.kodi-check-1.outputs.is_kodi == 'true'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Publish Kodi ZIP (Phase 1 - v0.1.0)
+        uses: ./.github/actions/publish-kodi-zip
+        with:
+          kodi_project_name: ${{ needs.kodi-check-1.outputs.kodi_project_name }}
+          version: ${{ needs.release-phase-1.outputs.version }}
+          tag: ${{ needs.release-phase-1.outputs.tag }}
+
+  kodi-check-2:
+    needs: release-phase-2
+    runs-on: ubuntu-latest
+    outputs:
+      is_kodi: ${{ steps.check.outputs.is_kodi }}
+      kodi_project_name: ${{ steps.check.outputs.kodi_project_name }}
+      kodi_directory: ${{ steps.check.outputs.kodi_directory }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Check for Kodi project (Phase 2)
+        id: check
+        uses: ./.github/actions/check-kodi-project
+
+  kodi-zip-2:
+    needs: [release-phase-2, kodi-check-2]
+    if: needs.kodi-check-2.outputs.is_kodi == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Build Kodi addon ZIP (Phase 2 - v0.2.0)
+        uses: ./.github/actions/build-kodi-zip
+        with:
+          kodi_project_name: ${{ needs.kodi-check-2.outputs.kodi_project_name }}
+          kodi_directory: ${{ needs.kodi-check-2.outputs.kodi_directory }}
+          version: ${{ needs.release-phase-2.outputs.version }}
+
+  kodi-publish-2:
+    needs: [release-phase-2, kodi-check-2, kodi-zip-2]
+    if: needs.kodi-check-2.outputs.is_kodi == 'true'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Publish Kodi ZIP (Phase 2 - v0.2.0)
+        uses: ./.github/actions/publish-kodi-zip
+        with:
+          kodi_project_name: ${{ needs.kodi-check-2.outputs.kodi_project_name }}
+          version: ${{ needs.release-phase-2.outputs.version }}
+          tag: ${{ needs.release-phase-2.outputs.tag }}
+
+  kodi-check-3:
     needs: release-phase-3
     runs-on: ubuntu-latest
     outputs:
@@ -173,13 +285,13 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - name: Check for Kodi project and set env vars
+      - name: Check for Kodi project (Phase 3)
         id: check
         uses: ./.github/actions/check-kodi-project
 
-  kodi-zip:
-    needs: [release-phase-3, kodi-check]
-    if: needs.kodi-check.outputs.is_kodi == 'true'
+  kodi-zip-3:
+    needs: [release-phase-3, kodi-check-3]
+    if: needs.kodi-check-3.outputs.is_kodi == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout fixture repo
@@ -188,16 +300,16 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - name: Build Kodi addon ZIP
+      - name: Build Kodi addon ZIP (Phase 3 - v1.0.0)
         uses: ./.github/actions/build-kodi-zip
         with:
-          kodi_project_name: ${{ needs.kodi-check.outputs.kodi_project_name }}
-          kodi_directory: ${{ needs.kodi-check.outputs.kodi_directory }}
+          kodi_project_name: ${{ needs.kodi-check-3.outputs.kodi_project_name }}
+          kodi_directory: ${{ needs.kodi-check-3.outputs.kodi_directory }}
           version: ${{ needs.release-phase-3.outputs.version }}
 
-  kodi-publish:
-    needs: [release-phase-3, kodi-check, kodi-zip]
-    if: needs.kodi-check.outputs.is_kodi == 'true'
+  kodi-publish-3:
+    needs: [release-phase-3, kodi-check-3, kodi-zip-3]
+    if: needs.kodi-check-3.outputs.is_kodi == 'true'
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -208,26 +320,15 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - name: Publish Kodi ZIP to release
+      - name: Publish Kodi ZIP (Phase 3 - v1.0.0)
         uses: ./.github/actions/publish-kodi-zip
         with:
-          kodi_project_name: ${{ needs.kodi-check.outputs.kodi_project_name }}
+          kodi_project_name: ${{ needs.kodi-check-3.outputs.kodi_project_name }}
           version: ${{ needs.release-phase-3.outputs.version }}
           tag: ${{ needs.release-phase-3.outputs.tag }}
 
-  pre-cleanup-check:
-    needs: [release-phase-3, kodi-check, kodi-zip, kodi-publish]
-    runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - name: Checkout fixture repo
-        uses: actions/checkout@v4
-      - name: Check pre-cleanup state
-        uses: ./.github/actions/check-pre-cleanup
-
   post-psr-tests:
-    needs: [release-phase-3, kodi-check, kodi-zip, kodi-publish]
+    needs: [release-phase-1, kodi-check-1, kodi-zip-1, kodi-publish-1, release-phase-2, kodi-check-2, kodi-zip-2, kodi-publish-2, release-phase-3, kodi-check-3, kodi-zip-3, kodi-publish-3]
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -251,38 +352,3 @@ jobs:
         uses: ./.github/actions/install-dev-dependencies
       - name: Run post-PSR integration tests
         uses: ./.github/actions/run-post-psr-tests
-
-  cleanup:
-    needs: [pre-psr-tests, release-phase-1, release-phase-2, release-phase-3, kodi-check, kodi-zip, kodi-publish, pre-cleanup-check, post-psr-tests]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Checkout fixture repo
-        uses: actions/checkout@v4
-
-      - name: Clean up test branch
-        run: |
-          git checkout main
-          git branch -D ci/${{ github.event.client_payload.run_id }} || true
-
-      - name: Clean up tags, releases, and branches
-        uses: ./.github/actions/cleanup-tags-releases
-
-      - name: Dispatch results back to templates repo
-        run: |
-          STATUS="success"
-          if [ "${{ needs.pre-psr-tests.result }}" != "success" ] || [ "${{ needs.release-phase-3.result }}" != "success" ] || [ "${{ needs.post-psr-tests.result }}" != "success" ]; then
-            STATUS="failure"
-          fi
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.event.client_payload.templates_repo }}/dispatches \
-            -d '{
-              "event_type": "test-harness-complete",
-              "client_payload": {
-                "run_id": "${{ github.event.client_payload.run_id }}",
-                "status": "'$STATUS'",
-                "psr_version": "v10.5.3"
-              }
-            }'
