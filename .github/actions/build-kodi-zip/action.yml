@@ -10,6 +10,9 @@ inputs:
   version:
     description: 'Version string for the ZIP filename'
     required: true
+  phase:
+    description: 'Phase identifier for artifact naming (phase-1, phase-2, phase-3)'
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -21,5 +24,5 @@ runs:
     - name: Upload ZIP artifact
       uses: actions/upload-artifact@v4
       with:
-        name: kodi-addon-zip
+        name: kodi-addon-zip-${{ inputs.phase }}
         path: artifacts/${{ inputs.kodi_project_name }}-${{ inputs.version }}.zip

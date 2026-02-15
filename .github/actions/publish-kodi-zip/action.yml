@@ -10,13 +10,16 @@ inputs:
   tag:
     description: 'Git tag/release to upload to'
     required: true
+  phase:
+    description: 'Phase identifier for artifact retrieval (phase-1, phase-2, phase-3)'
+    required: true
 runs:
   using: 'composite'
   steps:
     - name: Download ZIP artifact
       uses: actions/download-artifact@v4
       with:
-        name: kodi-addon-zip
+        name: kodi-addon-zip-${{ inputs.phase }}
         path: artifacts
     - name: Upload ZIP to release
       run: |
