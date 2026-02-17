@@ -30,5 +30,5 @@ prerelease = false
 
 [tool.arranger]
 use-default-kodi-addon-structure = true
-kodi-project-name = "script.module.example"
+kodi-addon-directory = "script.module.example"
 source-mappings = {}

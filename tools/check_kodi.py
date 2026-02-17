@@ -23,11 +23,11 @@ def main():
         sys.exit(1)
 
     arranger = config.get('tool', {}).get('arranger', {})
-    kodi_name = arranger.get('kodi-project-name')
+    kodi_name = arranger.get('kodi-addon-directory')
 
     if kodi_name:
         print(f"is_kodi=true")
-        print(f"kodi_project_name={kodi_name}")
+        print(f"kodi_addon_directory={kodi_name}")
         print(f"kodi_directory={kodi_name}")
     else:
         print("is_kodi=false")
