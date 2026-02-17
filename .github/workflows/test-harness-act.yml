@@ -46,6 +46,15 @@ jobs:
           fixture_dir: .
       - name: Run post-PSR integration tests
         uses: ./.github/actions/run-post-psr-tests
+      - name: Upload rendered templates
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-templates
+          path: |
+            CHANGELOG.md
+            script.module.example/addon.xml
+          retention-days: 5
       - name: Clean up test branch
         if: always()
         run: |
