@@ -64,8 +64,8 @@ jobs:
         with:
           phase: '0'
           branch: ci/${{ github.event.client_payload.run_id }}
-      - name: Run arranger
-        uses: ./.github/actions/run-arranger
+      - name: Run psr_prepare (Phase 1)
+        run: psr-prepare
       - name: Run PSR (Release 0.1.0)
         id: psr_1
         uses: python-semantic-release/python-semantic-release@v10.5.3
@@ -111,8 +111,8 @@ jobs:
         with:
           phase: '1'
           branch: ci/${{ github.event.client_payload.run_id }}
-      - name: Run arranger
-        uses: ./.github/actions/run-arranger
+      - name: Run psr_prepare (Phase 2)
+        run: psr-prepare
       - name: Run PSR (Release 0.2.0)
         id: psr_2
         uses: python-semantic-release/python-semantic-release@v10.5.3
@@ -158,8 +158,8 @@ jobs:
         with:
           phase: '2'
           branch: ci/${{ github.event.client_payload.run_id }}
-      - name: Run arranger
-        uses: ./.github/actions/run-arranger
+      - name: Run psr_prepare (Phase 3)
+        run: psr-prepare
       - name: Run PSR (Release 1.0.0 - force major)
         id: psr_3
         uses: python-semantic-release/python-semantic-release@v10.5.3

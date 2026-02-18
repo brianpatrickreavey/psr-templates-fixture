@@ -4,6 +4,13 @@ on:
   repository_dispatch:
     types: [test-harness-run]
 
+permissions:
+  contents: write
+
+concurrency:
+  group: psr-test-harness-act-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   test-harness-act:
     if: ${{ !startsWith(github.event.client_payload.run_id, 'gha-') }}
@@ -17,8 +24,10 @@ jobs:
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
-      - name: Pre-cleanup local tags
-        run: git tag -d $(git tag) || true
+        with:
+          fetch-depth: 0
+      - name: Pre-cleanup local tags and releases
+        run: git tag -d $(git tag) 2>/dev/null || true
       - name: Install uv
         uses: ./.github/actions/install-uv
       - name: Set up venv
@@ -29,37 +38,75 @@ jobs:
         uses: ./.github/actions/install-dev-dependencies
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
-      - name: Run arranger
-        uses: ./.github/actions/run-arranger
-      - name: Generate test commits
-        uses: ./.github/actions/run-generate-commits
-      - name: Check for Kodi project and set env vars
-        id: check
-        uses: ./.github/actions/check-kodi-project
-      - name: Pre-cleanup check (dry-run simulation)
-        run: |
-          echo "Simulated tags:" && git tag || echo "No tags"
-          echo "Simulated releases:" && echo "None (dry-run)"
-      - name: Run PSR dry-run
+
+      # Phase 1: 0.1.0
+      - name: Generate and push phase 0 commits
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '0'
+          branch: ci/${{ github.event.client_payload.run_id }}
+      - name: Run psr_prepare (Phase 1)
+        run: psr-prepare
+      - name: Run PSR (Release 0.1.0)
         uses: ./.github/actions/run-psr-locally
         with:
           fixture_dir: .
-      - name: Run post-PSR integration tests
-        uses: ./.github/actions/run-post-psr-tests
-      - name: Upload rendered templates
+      - name: Upload rendered templates (Phase 1 - v0.1.0)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rendered-templates
+          name: rendered-templates-phase-1-v0.1.0
           path: |
             CHANGELOG.md
             script.module.example/addon.xml
           retention-days: 5
-      - name: Clean up test branch
+
+      # Phase 2: 0.2.0
+      - name: Generate and push phase 1 commits
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '1'
+          branch: ci/${{ github.event.client_payload.run_id }}
+      - name: Run psr_prepare (Phase 2)
+        run: psr-prepare
+      - name: Run PSR (Release 0.2.0)
+        uses: ./.github/actions/run-psr-locally
+        with:
+          fixture_dir: .
+      - name: Upload rendered templates (Phase 2 - v0.2.0)
         if: always()
-        run: |
-          git checkout main || true
-          git branch -D ci/${{ github.event.client_payload.run_id }} 2>/dev/null || true
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-templates-phase-2-v0.2.0
+          path: |
+            CHANGELOG.md
+            script.module.example/addon.xml
+          retention-days: 5
+
+      # Phase 3: 1.0.0
+      - name: Generate and push phase 2 commits
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '2'
+          branch: ci/${{ github.event.client_payload.run_id }}
+      - name: Run psr_prepare (Phase 3)
+        run: psr-prepare
+      - name: Run PSR (Release 1.0.0 - force major)
+        uses: ./.github/actions/run-psr-locally
+        with:
+          fixture_dir: .
+      - name: Upload rendered templates (Phase 3 - v1.0.0)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-templates-phase-3-v1.0.0
+          path: |
+            CHANGELOG.md
+            script.module.example/addon.xml
+          retention-days: 5
+
+      - name: Run post-PSR integration tests
+        uses: ./.github/actions/run-post-psr-tests
       - name: Clean up test branch
         if: always()
         run: |
@@ -67,4 +114,4 @@ jobs:
           git branch -D ci/${{ github.event.client_payload.run_id }} 2>/dev/null || true
       - name: Final cleanup local tags
         if: always()
-        run: git tag -d $(git tag) || true
+        run: git tag -d $(git tag) 2>/dev/null || true
