@@ -46,7 +46,9 @@ jobs:
           phase: '0'
           branch: ci/${{ github.event.client_payload.run_id }}
       - name: Run psr_prepare (Phase 1)
-        run: psr-prepare
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
       - name: Run PSR (Release 0.1.0)
         uses: ./.github/actions/run-psr-locally
         with:
@@ -68,7 +70,9 @@ jobs:
           phase: '1'
           branch: ci/${{ github.event.client_payload.run_id }}
       - name: Run psr_prepare (Phase 2)
-        run: psr-prepare
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
       - name: Run PSR (Release 0.2.0)
         uses: ./.github/actions/run-psr-locally
         with:
@@ -90,7 +94,9 @@ jobs:
           phase: '2'
           branch: ci/${{ github.event.client_payload.run_id }}
       - name: Run psr_prepare (Phase 3)
-        run: psr-prepare
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
       - name: Run PSR (Release 1.0.0 - force major)
         uses: ./.github/actions/run-psr-locally
         with:
