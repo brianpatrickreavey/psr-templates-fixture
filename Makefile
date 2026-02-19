@@ -1,8 +1,12 @@
-.PHONY: ci-simulate clean-tags clean-releases clean-tags-and-releases test
+.PHONY: ci-simulate clean-tags clean-releases clean-tags-and-releases clean test
 
 # Run tests
 test:
 	uv run pytest tests/ -v
+
+# Clean up build artifacts and templates
+clean:
+	rm -rf templates/ .artifacts/
 
 # Simulate CI with act
 ci-simulate:
