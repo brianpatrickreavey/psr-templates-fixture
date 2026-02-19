@@ -6,7 +6,7 @@ test:
 
 # Clean up build artifacts and templates
 clean:
-	rm -rf templates/ .artifacts/
+	rm -rf templates/ .artifacts/ .pytest_cache/ build/ dist/ *.egg-info src/*.egg-info
 
 # Unzip all artifacts for inspection
 unzip-artifacts:
