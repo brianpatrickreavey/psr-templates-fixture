@@ -8,13 +8,20 @@ test:
 clean:
 	rm -rf templates/ .artifacts/ .pytest_cache/ build/ dist/ *.egg-info src/*.egg-info
 
-# Unzip all artifacts for inspection
+# Unzip all artifacts for inspection (including nested addon zips)
 unzip-artifacts:
 	@echo "Extracting artifacts..." && \
-	find .artifacts -name "*.zip" -type f | while read zip; do \
-	  dir="$${zip%.zip}"; \
-	  mkdir -p "$$dir"; \
-	  unzip -oq "$$zip" -d "$$dir"; \
+	max_iterations=10; \
+	iteration=0; \
+	while [ $$iteration -lt $$max_iterations ]; do \
+	  zip_count=$$(find .artifacts -name "*.zip" -type f | wc -l); \
+	  [ $$zip_count -eq 0 ] && break; \
+	  find .artifacts -name "*.zip" -type f | while read zip; do \
+	    dir="$${zip%.zip}"; \
+	    mkdir -p "$$dir"; \
+	    unzip -oq "$$zip" -d "$$dir"; \
+	  done; \
+	  iteration=$$((iteration + 1)); \
 	done
 	@echo "Artifacts extracted to .artifacts/"
 
