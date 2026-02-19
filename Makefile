@@ -1,4 +1,4 @@
-.PHONY: ci-simulate clean-tags clean-releases clean-tags-and-releases clean test
+.PHONY: ci-simulate clean-tags clean-releases clean-tags-and-releases clean test unzip-artifacts
 
 # Run tests
 test:
@@ -8,9 +8,27 @@ test:
 clean:
 	rm -rf templates/ .artifacts/
 
+# Unzip all artifacts for inspection
+unzip-artifacts:
+	@echo "Extracting artifacts..." && \
+	find .artifacts -name "*.zip" -type f | while read zip; do \
+	  dir="$${zip%.zip}"; \
+	  mkdir -p "$$dir"; \
+	  unzip -oq "$$zip" -d "$$dir"; \
+	done
+	@echo "Artifacts extracted to .artifacts/"
+
 # Simulate CI with act
 ci-simulate:
-	act repository_dispatch --artifact-server-path .artifacts -W .github/workflows/test-harness-act.yml -e .act/event.json --container-architecture linux/amd64
+	@timestamp=$$(date +%Y%m%d-%H%M%S); \
+	echo "Running CI simulation (artifacts: .artifacts/$$timestamp)"; \
+	act repository_dispatch \
+	  --artifact-server-path ".artifacts/$$timestamp" \
+	  -W .github/workflows/test-harness-act.yml \
+	  -e .act/event.json \
+	  --container-architecture linux/amd64 \
+	  --env GITHUB_RUN_ID="$$timestamp"; \
+	echo "Artifacts stored in .artifacts/$$timestamp"
 
 # Clean up all tags in the fixture repo
 clean-tags:

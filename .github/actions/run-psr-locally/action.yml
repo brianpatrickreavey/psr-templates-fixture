@@ -5,6 +5,10 @@ inputs:
     description: 'Directory to run PSR in'
     required: false
     default: '.'
+  force:
+    description: 'Force version bump level (major, minor, patch, or leave empty for automatic)'
+    required: false
+    default: ''
 runs:
   using: 'composite'
   steps:
@@ -18,6 +22,10 @@ runs:
       run: |
         source /tmp/venv/bin/activate
         cd ${{ inputs.fixture_dir }}
-        python-semantic-release version --changelog --commit --tag --no-push --no-vcs-release 2>&1 | tee psr-run.log
+        force_arg=""
+        if [ -n "${{ inputs.force }}" ]; then
+          force_arg="--${{ inputs.force }}"
+        fi
+        python-semantic-release version $force_arg --changelog --commit --tag --no-push --no-vcs-release 2>&1 | tee psr-run.log
       shell: bash
       working-directory: ${{ github.workspace }}
