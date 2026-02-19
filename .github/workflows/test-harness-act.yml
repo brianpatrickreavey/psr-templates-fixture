@@ -53,6 +53,20 @@ jobs:
         uses: ./.github/actions/run-psr-locally
         with:
           fixture_dir: .
+      - name: Build Kodi addon ZIP (Phase 1 - v0.1.0)
+        uses: ./.github/actions/build-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          kodi_directory: script.module.example
+          version: 0.1.0
+          phase: phase-1
+      - name: Publish Kodi addon ZIP (Phase 1 - v0.1.0)
+        uses: ./.github/actions/publish-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          version: 0.1.0
+          tag: v0.1.0
+          phase: phase-1
       - name: Upload rendered templates (Phase 1 - v0.1.0)
         if: always()
         uses: actions/upload-artifact@v4
@@ -77,6 +91,20 @@ jobs:
         uses: ./.github/actions/run-psr-locally
         with:
           fixture_dir: .
+      - name: Build Kodi addon ZIP (Phase 2 - v0.2.0)
+        uses: ./.github/actions/build-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          kodi_directory: script.module.example
+          version: 0.2.0
+          phase: phase-2
+      - name: Publish Kodi addon ZIP (Phase 2 - v0.2.0)
+        uses: ./.github/actions/publish-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          version: 0.2.0
+          tag: v0.2.0
+          phase: phase-2
       - name: Upload rendered templates (Phase 2 - v0.2.0)
         if: always()
         uses: actions/upload-artifact@v4
@@ -101,6 +129,20 @@ jobs:
         uses: ./.github/actions/run-psr-locally
         with:
           fixture_dir: .
+      - name: Build Kodi addon ZIP (Phase 3 - v1.0.0)
+        uses: ./.github/actions/build-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          kodi_directory: script.module.example
+          version: 1.0.0
+          phase: phase-3
+      - name: Publish Kodi addon ZIP (Phase 3 - v1.0.0)
+        uses: ./.github/actions/publish-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          version: 1.0.0
+          tag: v1.0.0
+          phase: phase-3
       - name: Upload rendered templates (Phase 3 - v1.0.0)
         if: always()
         uses: actions/upload-artifact@v4
