@@ -59,15 +59,15 @@ jobs:
         uses: ./.github/actions/setup-venv
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-dependencies
-      - name: Generate and push phase 0 commits
+      - name: Generate and push phase 1 commits
         uses: ./.github/actions/generate-and-push-commits
         with:
-          phase: '0'
+          phase: '1'
           branch: ci/${{ github.event.client_payload.run_id }}
       - name: Run psr_prepare (Phase 1)
-        run: uv run psr-prepare
-        env:
-          UV_VENV: /tmp/venv
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
       - name: Run PSR (Release 0.1.0)
         id: psr_1
         uses: python-semantic-release/python-semantic-release@v10.5.3
@@ -108,15 +108,15 @@ jobs:
         uses: ./.github/actions/setup-venv
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-dependencies
-      - name: Generate and push phase 1 commits
+      - name: Generate and push phase 2 commits
         uses: ./.github/actions/generate-and-push-commits
         with:
-          phase: '1'
+          phase: '2'
           branch: ci/${{ github.event.client_payload.run_id }}
       - name: Run psr_prepare (Phase 2)
-        run: uv run psr-prepare
-        env:
-          UV_VENV: /tmp/venv
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
       - name: Run PSR (Release 0.2.0)
         id: psr_2
         uses: python-semantic-release/python-semantic-release@v10.5.3
@@ -157,15 +157,15 @@ jobs:
         uses: ./.github/actions/setup-venv
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-dependencies
-      - name: Generate and push phase 2 commits
+      - name: Generate and push phase 3 commits
         uses: ./.github/actions/generate-and-push-commits
         with:
-          phase: '2'
+          phase: '3'
           branch: ci/${{ github.event.client_payload.run_id }}
       - name: Run psr_prepare (Phase 3)
-        run: uv run psr-prepare
-        env:
-          UV_VENV: /tmp/venv
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
       - name: Run PSR (Release 1.0.0 - force major)
         id: psr_3
         uses: python-semantic-release/python-semantic-release@v10.5.3
@@ -357,8 +357,222 @@ jobs:
           tag: ${{ needs.release-phase-3.outputs.tag }}
           phase: 'phase-3'
 
-  post-release-tests:
+  release-phase-4:
     needs: [kodi-publish-3]
+    runs-on: ubuntu-latest
+    env:
+      UV_VENV: /tmp/venv
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    outputs:
+      tag: ${{ steps.psr_4.outputs.tag }}
+      version: ${{ steps.psr_4.outputs.version }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
+      - name: Install dev dependencies
+        uses: ./.github/actions/install-dev-dependencies
+      - name: Generate and push phase 4 commits
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '4'
+          branch: ci/${{ github.event.client_payload.run_id }}
+      - name: Run psr_prepare (Phase 4)
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
+      - name: Run PSR (Release 1.0.0 - docs only)
+        id: psr_4
+        uses: python-semantic-release/python-semantic-release@v10.5.3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit: true
+          push: true
+          tag: true
+          vcs_release: true
+      - name: Upload CHANGELOG to v1.0.0 release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ steps.psr_4.outputs.tag }} CHANGELOG.md --clobber
+        if: steps.psr_4.outputs.tag
+
+  release-phase-5:
+    needs: [kodi-publish-4]
+    runs-on: ubuntu-latest
+    env:
+      UV_VENV: /tmp/venv
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    outputs:
+      tag: ${{ steps.psr_5.outputs.tag }}
+      version: ${{ steps.psr_5.outputs.version }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
+      - name: Install dev dependencies
+        uses: ./.github/actions/install-dev-dependencies
+      - name: Generate and push phase 5 commits
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '5'
+          branch: ci/${{ github.event.client_payload.run_id }}
+      - name: Run psr_prepare (Phase 5)
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
+      - name: Run PSR (Release 1.0.1)
+        id: psr_5
+        uses: python-semantic-release/python-semantic-release@v10.5.3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit: true
+          push: true
+          tag: true
+          vcs_release: true
+      - name: Upload CHANGELOG to v1.0.1 release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ steps.psr_5.outputs.tag }} CHANGELOG.md --clobber
+        if: steps.psr_5.outputs.tag
+
+  kodi-check-4:
+    needs: [kodi-publish-3, release-phase-4]
+    runs-on: ubuntu-latest
+    outputs:
+      is_kodi: ${{ steps.check.outputs.is_kodi }}
+      kodi_project_name: ${{ steps.check.outputs.kodi_project_name }}
+      kodi_directory: ${{ steps.check.outputs.kodi_directory }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Check for Kodi project (Phase 4)
+        id: check
+        uses: ./.github/actions/check-kodi-project
+
+  kodi-zip-4:
+    needs: [release-phase-4, kodi-check-4]
+    if: needs.kodi-check-4.outputs.is_kodi == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Build Kodi addon ZIP (Phase 4 - v1.0.0)
+        uses: ./.github/actions/build-kodi-zip
+        with:
+          kodi_project_name: ${{ needs.kodi-check-4.outputs.kodi_project_name }}
+          kodi_directory: ${{ needs.kodi-check-4.outputs.kodi_directory }}
+          version: ${{ needs.release-phase-4.outputs.version }}
+          phase: 'phase-4'
+
+  kodi-publish-4:
+    needs: [release-phase-4, kodi-check-4, kodi-zip-4]
+    if: needs.kodi-check-4.outputs.is_kodi == 'true'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Publish Kodi ZIP (Phase 4 - v1.0.0)
+        uses: ./.github/actions/publish-kodi-zip
+        with:
+          kodi_project_name: ${{ needs.kodi-check-4.outputs.kodi_project_name }}
+          version: ${{ needs.release-phase-4.outputs.version }}
+          tag: ${{ needs.release-phase-4.outputs.tag }}
+          phase: 'phase-4'
+
+  kodi-check-5:
+    needs: [kodi-publish-4, release-phase-5]
+    runs-on: ubuntu-latest
+    outputs:
+      is_kodi: ${{ steps.check.outputs.is_kodi }}
+      kodi_project_name: ${{ steps.check.outputs.kodi_project_name }}
+      kodi_directory: ${{ steps.check.outputs.kodi_directory }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Check for Kodi project (Phase 5)
+        id: check
+        uses: ./.github/actions/check-kodi-project
+
+  kodi-zip-5:
+    needs: [release-phase-5, kodi-check-5]
+    if: needs.kodi-check-5.outputs.is_kodi == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Build Kodi addon ZIP (Phase 5 - v1.0.1)
+        uses: ./.github/actions/build-kodi-zip
+        with:
+          kodi_project_name: ${{ needs.kodi-check-5.outputs.kodi_project_name }}
+          kodi_directory: ${{ needs.kodi-check-5.outputs.kodi_directory }}
+          version: ${{ needs.release-phase-5.outputs.version }}
+          phase: 'phase-5'
+
+  kodi-publish-5:
+    needs: [release-phase-5, kodi-check-5, kodi-zip-5]
+    if: needs.kodi-check-5.outputs.is_kodi == 'true'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ci/${{ github.event.client_payload.run_id }}
+          fetch-depth: 0
+      - name: Publish Kodi ZIP (Phase 5 - v1.0.1)
+        uses: ./.github/actions/publish-kodi-zip
+        with:
+          kodi_project_name: ${{ needs.kodi-check-5.outputs.kodi_project_name }}
+          version: ${{ needs.release-phase-5.outputs.version }}
+          tag: ${{ needs.release-phase-5.outputs.tag }}
+          phase: 'phase-5'
+
+  post-release-tests:
+    needs: [kodi-publish-5]
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
