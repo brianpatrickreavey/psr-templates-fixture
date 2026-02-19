@@ -216,7 +216,7 @@ jobs:
           git tag -l
           echo ""
           echo "=== Recent 20 commits ===" 
-          git log --oneline -20
+          git --no-pager log --oneline -20
           echo ""
           echo "=== Current branch ===" 
           git branch -v
