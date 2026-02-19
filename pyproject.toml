@@ -20,6 +20,14 @@ major_on_zero = false
 commit_author = "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
 commit_message = "chore: release v{version} [skip ci]"
 
+# Explicitly define which commit types trigger version bumps
+# perf is included in changelog (via news_types) but NOT in version bumps
+[tool.semantic_release.commit_parser_options]
+# Only these types trigger version bumps
+minor_types = ["feat"]
+patch_types = ["fix"]
+prerelease_types = []
+
 [tool.semantic_release.branches.main]
 match = "main"
 prerelease = false

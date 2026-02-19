@@ -37,32 +37,14 @@ jobs:
         uses: ./.github/actions/create-test-branch
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-dependencies
-      - name: Debug - Check venv contents
-        run: |
-          echo "=== /tmp/venv/bin contents ==="
-          ls -la /tmp/venv/bin/ | grep -E "psr|python"
-          echo ""
-          echo "=== Check for psr-prepare ==="
-          which psr-prepare || echo "psr-prepare not in PATH (this is ok)"
-          /tmp/venv/bin/psr-prepare --help | head -5 || echo "Failed to run /tmp/venv/bin/psr-prepare"
-          echo ""
-          echo "=== Test uv run psr-prepare ==="
-          uv run psr-prepare --help 2>&1 | head -10
-          echo ""
-          echo "=== Test with venv activated ==="
-          source /tmp/venv/bin/activate && psr-prepare --help 2>&1 | head -10
-          echo ""
-          echo "=== Check pip list ==="
-          /tmp/venv/bin/pip list | grep -i psr
-        continue-on-error: true
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
 
       # Phase 1: 0.1.0
-      - name: Generate and push phase 0 commits
+      - name: Generate and push phase 1 commits
         uses: ./.github/actions/generate-and-push-commits
         with:
-          phase: '0'
+          phase: '1'
           branch: ci/${{ github.event.client_payload.run_id }}
       - name: Run psr_prepare (Phase 1)
         run: |
@@ -79,13 +61,6 @@ jobs:
           kodi_directory: script.module.example
           version: 0.1.0
           phase: phase-1
-      - name: Publish Kodi addon ZIP (Phase 1 - v0.1.0)
-        uses: ./.github/actions/publish-kodi-zip
-        with:
-          kodi_project_name: script.module.example
-          version: 0.1.0
-          tag: v0.1.0
-          phase: phase-1
       - name: Upload rendered templates (Phase 1 - v0.1.0)
         if: always()
         uses: actions/upload-artifact@v4
@@ -97,11 +72,23 @@ jobs:
           retention-days: 5
 
       # Phase 2: 0.2.0
-      - name: Generate and push phase 1 commits
+      - name: Generate and push phase 2 commits
         uses: ./.github/actions/generate-and-push-commits
         with:
-          phase: '1'
+          phase: '2'
           branch: ci/${{ github.event.client_payload.run_id }}
+      - name: Debug - Dump addon.xml before Phase 2 psr_prepare
+        run: |
+          echo "=== addon.xml before Phase 2 psr_prepare ==="
+          cat script.module.example/addon.xml
+          echo ""
+          echo "=== File size and type ==="
+          wc -c script.module.example/addon.xml
+          file script.module.example/addon.xml
+          echo ""
+          echo "=== Check for hidden chars at start (first 10 bytes as octal) ==="
+          head -c 10 script.module.example/addon.xml | od -c
+        continue-on-error: true
       - name: Run psr_prepare (Phase 2)
         run: |
           source /tmp/venv/bin/activate
@@ -117,13 +104,6 @@ jobs:
           kodi_directory: script.module.example
           version: 0.2.0
           phase: phase-2
-      - name: Publish Kodi addon ZIP (Phase 2 - v0.2.0)
-        uses: ./.github/actions/publish-kodi-zip
-        with:
-          kodi_project_name: script.module.example
-          version: 0.2.0
-          tag: v0.2.0
-          phase: phase-2
       - name: Upload rendered templates (Phase 2 - v0.2.0)
         if: always()
         uses: actions/upload-artifact@v4
@@ -134,11 +114,11 @@ jobs:
             script.module.example/addon.xml
           retention-days: 5
 
-      # Phase 3: 1.0.0
-      - name: Generate and push phase 2 commits
+      # Phase 3: 1.0.0 (force major)
+      - name: Generate and push phase 3 commits
         uses: ./.github/actions/generate-and-push-commits
         with:
-          phase: '2'
+          phase: '3'
           branch: ci/${{ github.event.client_payload.run_id }}
       - name: Run psr_prepare (Phase 3)
         run: |
@@ -148,19 +128,13 @@ jobs:
         uses: ./.github/actions/run-psr-locally
         with:
           fixture_dir: .
+          force: 'major'
       - name: Build Kodi addon ZIP (Phase 3 - v1.0.0)
         uses: ./.github/actions/build-kodi-zip
         with:
           kodi_project_name: script.module.example
           kodi_directory: script.module.example
           version: 1.0.0
-          phase: phase-3
-      - name: Publish Kodi addon ZIP (Phase 3 - v1.0.0)
-        uses: ./.github/actions/publish-kodi-zip
-        with:
-          kodi_project_name: script.module.example
-          version: 1.0.0
-          tag: v1.0.0
           phase: phase-3
       - name: Upload rendered templates (Phase 3 - v1.0.0)
         if: always()
@@ -172,8 +146,81 @@ jobs:
             script.module.example/addon.xml
           retention-days: 5
 
+      # Phase 4: 1.0.0 (no version bump, perf improvements only)
+      - name: Generate and push phase 4 commits
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '4'
+          branch: ci/${{ github.event.client_payload.run_id }}
+      - name: Run psr_prepare (Phase 4)
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
+      - name: Run PSR (Release 1.0.0 - perf only)
+        uses: ./.github/actions/run-psr-locally
+        with:
+          fixture_dir: .
+      - name: Build Kodi addon ZIP (Phase 4 - v1.0.0)
+        uses: ./.github/actions/build-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          kodi_directory: script.module.example
+          version: 1.0.0
+          phase: phase-4
+      - name: Upload rendered templates (Phase 4 - v1.0.0)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-templates-phase-4-v1.0.0
+          path: |
+            CHANGELOG.md
+            script.module.example/addon.xml
+          retention-days: 5
+
+      # Phase 5: 1.0.1
+      - name: Generate and push phase 5 commits
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '5'
+          branch: ci/${{ github.event.client_payload.run_id }}
+      - name: Run psr_prepare (Phase 5)
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
+      - name: Run PSR (Release 1.0.1)
+        uses: ./.github/actions/run-psr-locally
+        with:
+          fixture_dir: .
+      - name: Build Kodi addon ZIP (Phase 5 - v1.0.1)
+        uses: ./.github/actions/build-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          kodi_directory: script.module.example
+          version: 1.0.1
+          phase: phase-5
+      - name: Upload rendered templates (Phase 5 - v1.0.1)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-templates-phase-5-v1.0.1
+          path: |
+            CHANGELOG.md
+            script.module.example/addon.xml
+          retention-days: 5
+
       - name: Run post-PSR integration tests
         uses: ./.github/actions/run-post-psr-tests
+      - name: Debug - List tags and recent commits before cleanup
+        run: |
+          echo "=== Git tags ===" 
+          git tag -l
+          echo ""
+          echo "=== Recent 20 commits ===" 
+          git log --oneline -20
+          echo ""
+          echo "=== Current branch ===" 
+          git branch -v
+        continue-on-error: true
       - name: Clean up test branch
         if: always()
         run: |

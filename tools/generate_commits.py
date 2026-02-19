@@ -6,10 +6,10 @@ This script creates commits in phases to test version bumping behavior.
 All commits include " (ci-test-run)" marker for exclusion.
 
 Usage:
-  generate_commits.py [--phase 0-4] [--all] <fixture_repo_path>
+  generate_commits.py [--phase 1-5] [--all] <fixture_repo_path>
 
 Options:
-  --phase N     Generate only phase N (0-4)
+  --phase N     Generate only phase N (1-5)
   --all         Generate all phases (default if no phase specified)
 """
 
@@ -31,40 +31,35 @@ def create_commit(message, cwd=None):
     full_message = f"{message} (ci-test-run)"
     run_git('commit', '-m', full_message, '--allow-empty', cwd=cwd)
 
-def phase_0_breaking_changes(repo_path):
-    """Phase 0: Breaking changes + others → minor bump if version <1."""
-    print("Phase 0: Breaking changes")
-    create_commit('feat!: add breaking API change', cwd=repo_path)
-    create_commit('fix: resolve compatibility issue', cwd=repo_path)
-    create_commit('ci: update build configuration', cwd=repo_path)
+def phase_1_features(repo_path):
+    """Phase 1: Features → 0.1.0 (minor bump)."""
+    print("Phase 1: Features")
+    create_commit('feat: [PHASE-1] add user authentication system', cwd=repo_path)
+    create_commit('feat: [PHASE-1] implement data caching layer', cwd=repo_path)
 
-def phase_1_minor_bump(repo_path):
-    """Phase 1: Regular features → minor bump (0.1.0 → 0.2.0)."""
-    print("Phase 1: Minor bump (features only)")
-    create_commit('feat: add new functionality', cwd=repo_path)
-    create_commit('feat: improve user interface', cwd=repo_path)
-    create_commit('docs: update API documentation', cwd=repo_path)
+def phase_2_bugfixes(repo_path):
+    """Phase 2: Bug fixes → 0.1.1 (patch bump)."""
+    print("Phase 2: Bug fixes")
+    create_commit('fix: [PHASE-2] resolve null pointer exception', cwd=repo_path)
+    create_commit('fix: [PHASE-2] fix race condition in thread pool', cwd=repo_path)
 
-def phase_2_minor_bump(repo_path):
-    """Phase 2: Features + others → minor bump."""
-    print("Phase 2: Minor bump")
-    create_commit('feat: add new functionality', cwd=repo_path)
-    create_commit('feat: improve user interface', cwd=repo_path)
-    create_commit('refactor: clean up code structure', cwd=repo_path)
+def phase_3_features_major(repo_path):
+    """Phase 3: Features with --force major → 1.0.0."""
+    print("Phase 3: Features (will force major)")
+    create_commit('feat: [PHASE-3] redesign API endpoints', cwd=repo_path)
+    create_commit('feat: [PHASE-3] restructure database schema', cwd=repo_path)
 
-def phase_3_patch_bump(repo_path):
-    """Phase 3: Fixes + lesser → patch bump."""
-    print("Phase 3: Patch bump")
-    create_commit('fix: resolve bug in data processing', cwd=repo_path)
-    create_commit('fix: correct typo in error message', cwd=repo_path)
-    create_commit('perf: optimize database queries', cwd=repo_path)
+def phase_4_performance(repo_path):
+    """Phase 4: Performance improvements → 1.0.0 (no bump, changelog only)."""
+    print("Phase 4: Performance improvements")
+    create_commit('perf: [PHASE-4] optimize database queries', cwd=repo_path)
+    create_commit('perf: [PHASE-4] reduce memory footprint', cwd=repo_path)
 
-def phase_4_no_bump(repo_path):
-    """Phase 4: CI/test/etc. → no bump."""
-    print("Phase 4: No bump")
-    create_commit('ci: update CI configuration', cwd=repo_path)
-    create_commit('test: add unit tests', cwd=repo_path)
-    create_commit('chore: update dependencies', cwd=repo_path)
+def phase_5_bugfixes(repo_path):
+    """Phase 5: Bug fixes → 1.0.1 (patch bump)."""
+    print("Phase 5: Bug fixes")
+    create_commit('fix: [PHASE-5] correct sorting order in results', cwd=repo_path)
+    create_commit('fix: [PHASE-5] handle edge case in validation', cwd=repo_path)
 
 def main():
     # Parse arguments
@@ -81,8 +76,8 @@ def main():
             if len(parts) == 2:
                 try:
                     phase_to_run = int(parts[1])
-                    if phase_to_run < 0 or phase_to_run > 4:
-                        print(f"ERROR: Phase must be 0-4, got {phase_to_run}")
+                    if phase_to_run < 1 or phase_to_run > 5:
+                        print(f"ERROR: Phase must be 1-5, got {phase_to_run}")
                         sys.exit(1)
                     run_all = False
                 except ValueError:
@@ -93,8 +88,8 @@ def main():
                 next_arg = sys.argv[sys.argv.index(arg) + 1]
                 try:
                     phase_to_run = int(next_arg)
-                    if phase_to_run < 0 or phase_to_run > 4:
-                        print(f"ERROR: Phase must be 0-4, got {phase_to_run}")
+                    if phase_to_run < 1 or phase_to_run > 5:
+                        print(f"ERROR: Phase must be 1-5, got {phase_to_run}")
                         sys.exit(1)
                     run_all = False
                 except (ValueError, IndexError):
@@ -104,7 +99,7 @@ def main():
 
     if repo_path is None:
         print("Usage: generate_commits.py [--phase N] [--all] <fixture_repo_path>")
-        print("  --phase N    Generate only phase N (0-4)")
+        print("  --phase N    Generate only phase N (1-5)")
         print("  --all        Generate all phases (default if no phase specified)")
         sys.exit(1)
 
@@ -128,16 +123,16 @@ def main():
 
     # Run requested phases
     phases = {
-        0: phase_0_breaking_changes,
-        1: phase_1_minor_bump,
-        2: phase_2_minor_bump,
-        3: phase_3_patch_bump,
-        4: phase_4_no_bump,
+        1: phase_1_features,
+        2: phase_2_bugfixes,
+        3: phase_3_features_major,
+        4: phase_4_performance,
+        5: phase_5_bugfixes,
     }
 
     if run_all:
         # Generate all phases
-        for i in range(5):
+        for i in range(1, 6):
             phases[i](repo_path)
     else:
         # Generate specific phase
