@@ -28,6 +28,24 @@ prerelease = false
 match = "ci/.*"
 prerelease = false
 
+[tool.psr-prepare.addon]
+id = "script.module.example"
+name = "Example Script Module"
+provider-name = "Example Provider"
+description = "A example script module for testing"
+license = "GPL-2.0-only"
+
+[[tool.psr-prepare.addon.requires]]
+addon = "xbmc.python"
+version = "3.0.0+"
+
+[tool.psr-prepare.changelog]
+file = "CHANGELOG.md"
+
+# News type mappings: commit_type → label
+# Maps PSR commit types to Kodi news labels for formatting
+news_types = {feat = "new", fix = "fix", perf = "improved"}
+
 [tool.arranger]
 use-default-kodi-addon-structure = true
 kodi-addon-directory = "script.module.example"
