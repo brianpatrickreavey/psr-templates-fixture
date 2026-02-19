@@ -10,7 +10,7 @@ clean:
 
 # Simulate CI with act
 ci-simulate:
-	act repository_dispatch -W .github/workflows/test-harness-act.yml -e .act/event.json --container-architecture linux/amd64
+	act repository_dispatch --artifact-server-path .artifacts -W .github/workflows/test-harness-act.yml -e .act/event.json --container-architecture linux/amd64
 
 # Clean up all tags in the fixture repo
 clean-tags:
