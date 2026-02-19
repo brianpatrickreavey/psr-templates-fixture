@@ -11,5 +11,8 @@ runs:
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
         git config --local url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+        # Delete remote branch if it exists from previous test runs
+        git push origin --delete ci/${{ github.event.client_payload.run_id }} 2>/dev/null || true
+        # Create fresh local branch from main
         git checkout -b ci/${{ github.event.client_payload.run_id }}
         git push -u origin ci/${{ github.event.client_payload.run_id }}
