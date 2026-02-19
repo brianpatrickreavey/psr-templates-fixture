@@ -49,11 +49,11 @@ def phase_3_features_major(repo_path):
     create_commit('feat: [PHASE-3] redesign API endpoints', cwd=repo_path)
     create_commit('feat: [PHASE-3] restructure database schema', cwd=repo_path)
 
-def phase_4_performance(repo_path):
-    """Phase 4: Performance improvements → 1.0.0 (no bump, changelog only)."""
-    print("Phase 4: Performance improvements")
-    create_commit('perf: [PHASE-4] optimize database queries', cwd=repo_path)
-    create_commit('perf: [PHASE-4] reduce memory footprint', cwd=repo_path)
+def phase_4_documentation(repo_path):
+    """Phase 4: Documentation updates → 1.0.0 (no bump, no changelog)."""
+    print("Phase 4: Documentation updates")
+    create_commit('docs: [PHASE-4] update API documentation', cwd=repo_path)
+    create_commit('docs: [PHASE-4] improve README examples', cwd=repo_path)
 
 def phase_5_bugfixes(repo_path):
     """Phase 5: Bug fixes → 1.0.1 (patch bump)."""
@@ -126,7 +126,7 @@ def main():
         1: phase_1_features,
         2: phase_2_bugfixes,
         3: phase_3_features_major,
-        4: phase_4_performance,
+        4: phase_4_documentation,
         5: phase_5_bugfixes,
     }
 

@@ -146,7 +146,7 @@ jobs:
             script.module.example/addon.xml
           retention-days: 5
 
-      # Phase 4: 1.0.0 (no version bump, perf improvements only)
+      # Phase 4: 1.0.0 (no version bump, documentation only)
       - name: Generate and push phase 4 commits
         uses: ./.github/actions/generate-and-push-commits
         with:
@@ -156,7 +156,7 @@ jobs:
         run: |
           source /tmp/venv/bin/activate
           psr-prepare
-      - name: Run PSR (Release 1.0.0 - perf only)
+      - name: Run PSR (Release 1.0.0 - docs only)
         uses: ./.github/actions/run-psr-locally
         with:
           fixture_dir: .
