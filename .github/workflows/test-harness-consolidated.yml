@@ -149,7 +149,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-publish
+      - uses: ./.github/actions/consolidated-kodi-publish-to-release
         with:
           kodi_project_name: ${{ needs.kodi-check-1.outputs.kodi_project_name }}
           version: ${{ needs.release-phase-1.outputs.version }}
@@ -263,7 +263,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-publish
+      - uses: ./.github/actions/consolidated-kodi-publish-to-release
         with:
           kodi_project_name: ${{ needs.kodi-check-2.outputs.kodi_project_name }}
           version: ${{ needs.release-phase-2.outputs.version }}
@@ -377,7 +377,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-publish
+      - uses: ./.github/actions/consolidated-kodi-publish-to-release
         with:
           kodi_project_name: ${{ needs.kodi-check-3.outputs.kodi_project_name }}
           version: ${{ needs.release-phase-3.outputs.version }}
@@ -535,7 +535,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-publish
+      - uses: ./.github/actions/consolidated-kodi-publish-to-release
         with:
           kodi_project_name: ${{ needs.kodi-check-4.outputs.kodi_project_name }}
           version: ${{ needs.release-phase-4.outputs.version }}
@@ -588,7 +588,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-publish
+      - uses: ./.github/actions/consolidated-kodi-publish-to-release
         with:
           kodi_project_name: ${{ needs.kodi-check-5.outputs.kodi_project_name }}
           version: ${{ needs.release-phase-5.outputs.version }}

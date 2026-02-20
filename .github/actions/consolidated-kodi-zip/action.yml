@@ -1,5 +1,5 @@
 name: Consolidated Kodi Zip
-description: Build Kodi addon zip file, GitHub-only (skipped in ACT mode)
+description: Build Kodi addon zip file and upload artifact (runs in both GitHub and ACT modes)
 
 inputs:
   kodi_project_name:
@@ -18,8 +18,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Build Kodi zip (GitHub only)
-      if: ${{ !github.event.act }}
+    - name: Build Kodi zip
       uses: ./.github/actions/build-kodi-zip
       with:
         kodi_project_name: ${{ inputs.kodi_project_name }}

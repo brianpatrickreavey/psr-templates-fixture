@@ -1,0 +1,28 @@
+name: Consolidated Kodi Publish to Release
+description: Publish Kodi addon zip to GitHub release, GitHub-only (skipped in ACT mode)
+
+inputs:
+  kodi_project_name:
+    description: Kodi project name
+    required: true
+  version:
+    description: Version to publish
+    required: true
+  tag:
+    description: Release tag
+    required: true
+  phase:
+    description: Release phase name
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Publish Kodi zip to release (GitHub only)
+      if: ${{ !github.event.act }}
+      uses: ./.github/actions/publish-kodi-zip
+      with:
+        kodi_project_name: ${{ inputs.kodi_project_name }}
+        version: ${{ inputs.version }}
+        tag: ${{ inputs.tag }}
+        phase: ${{ inputs.phase }}
