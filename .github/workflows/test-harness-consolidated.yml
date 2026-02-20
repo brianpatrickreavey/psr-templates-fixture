@@ -50,7 +50,7 @@ jobs:
         uses: ./.github/actions/run-pre-psr-tests
 
   # Phase 1: v0.1.0
-  release-phase-1:
+  phase-1:
     needs: pre-release-tests
     runs-on: ubuntu-latest
     env:
@@ -59,10 +59,10 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     outputs:
-      tag: ${{ steps.psr_1.outputs.tag }}
-      version: ${{ steps.psr_1.outputs.version }}
+      tag: ${{ steps.psr.outputs.tag }}
+      version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Checkout
+      - name: Checkout test branch
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
@@ -90,57 +90,37 @@ jobs:
           psr-prepare
 
       - name: Run PSR (Phase 1)
-        id: psr_1
+        id: psr
         uses: ./.github/actions/run-psr
         with:
           mode: ${{ github.event.act && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ !github.event.act && steps.psr_1.outputs.tag }}
+        if: ${{ !github.event.act && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ steps.psr_1.outputs.tag }} CHANGELOG.md --clobber
+        run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
 
-  # Kodi jobs for Phase 1
-  kodi-zip-1:
-    needs: release-phase-1
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
-          fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-zip
+      - name: Build and upload Kodi artifacts (Phase 1)
+        uses: ./.github/actions/consolidated-kodi-zip
         with:
           kodi_project_name: script.module.example
           kodi_directory: script.module.example
-          version: ${{ needs.release-phase-1.outputs.version }}
+          version: ${{ steps.psr.outputs.version }}
           phase: 'phase-1'
 
-  kodi-publish-1:
-    needs: [release-phase-1, kodi-zip-1]
-    runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
-          fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-publish-to-release
+      - name: Publish Kodi addon to release (Phase 1)
+        uses: ./.github/actions/consolidated-kodi-publish-to-release
         with:
           kodi_project_name: script.module.example
-          version: ${{ needs.release-phase-1.outputs.version }}
-          tag: ${{ needs.release-phase-1.outputs.tag }}
+          version: ${{ steps.psr.outputs.version }}
+          tag: ${{ steps.psr.outputs.tag }}
           phase: 'phase-1'
 
   # Phase 2: v0.2.0
-  release-phase-2:
-    needs: [kodi-publish-1]
-    if: always() && needs.kodi-publish-1.result == 'success'
+  phase-2:
+    needs: phase-1
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -148,10 +128,11 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     outputs:
-      tag: ${{ steps.psr_2.outputs.tag }}
-      version: ${{ steps.psr_2.outputs.version }}
+      tag: ${{ steps.psr.outputs.tag }}
+      version: ${{ steps.psr.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout test branch
+        uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
@@ -172,71 +153,43 @@ jobs:
           phase: '2'
           branch: ci/${{ github.event.client_payload.run_id }}
 
-      - name: Debug addon.xml (ACT only)
-        if: ${{ github.event.act }}
-        run: |
-          echo "=== addon.xml before Phase 2 psr_prepare ===" && cat script.module.example/addon.xml
-          echo "" && echo "=== File check ===" && wc -c script.module.example/addon.xml && file script.module.example/addon.xml
-          echo "" && echo "=== Bytes ===" && head -c 10 script.module.example/addon.xml | od -c
-        continue-on-error: true
-
       - name: Run psr_prepare (Phase 2)
         run: |
           source /tmp/venv/bin/activate
           psr-prepare
 
       - name: Run PSR (Phase 2)
-        id: psr_2
+        id: psr
         uses: ./.github/actions/run-psr
         with:
           mode: ${{ github.event.act && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ !github.event.act && steps.psr_2.outputs.tag }}
+        if: ${{ !github.event.act && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ steps.psr_2.outputs.tag }} CHANGELOG.md --clobber
+        run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
 
-  # Kodi jobs for Phase 2
-  kodi-zip-2:
-    needs: release-phase-2
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
-          fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-zip
+      - name: Build and upload Kodi artifacts (Phase 2)
+        uses: ./.github/actions/consolidated-kodi-zip
         with:
           kodi_project_name: script.module.example
           kodi_directory: script.module.example
-          version: ${{ needs.release-phase-2.outputs.version }}
+          version: ${{ steps.psr.outputs.version }}
           phase: 'phase-2'
 
-  kodi-publish-2:
-    needs: [release-phase-2, kodi-zip-2]
-    runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
-          fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-publish-to-release
+      - name: Publish Kodi addon to release (Phase 2)
+        uses: ./.github/actions/consolidated-kodi-publish-to-release
         with:
           kodi_project_name: script.module.example
-          version: ${{ needs.release-phase-2.outputs.version }}
-          tag: ${{ needs.release-phase-2.outputs.tag }}
+          version: ${{ steps.psr.outputs.version }}
+          tag: ${{ steps.psr.outputs.tag }}
           phase: 'phase-2'
 
   # Phase 3: v1.0.0 (force major)
-  release-phase-3:
-    needs: [kodi-publish-2]
-    if: always() && needs.kodi-publish-2.result == 'success'
+  phase-3:
+    needs: phase-2
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -244,10 +197,11 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     outputs:
-      tag: ${{ steps.psr_3.outputs.tag }}
-      version: ${{ steps.psr_3.outputs.version }}
+      tag: ${{ steps.psr.outputs.tag }}
+      version: ${{ steps.psr.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout test branch
+        uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
@@ -273,8 +227,8 @@ jobs:
           source /tmp/venv/bin/activate
           psr-prepare
 
-      - name: Run PSR (Phase 3)
-        id: psr_3
+      - name: Run PSR (Phase 3 - force major)
+        id: psr
         uses: ./.github/actions/run-psr
         with:
           mode: ${{ github.event.act && 'act' || 'github' }}
@@ -282,51 +236,30 @@ jobs:
           force: major
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ !github.event.act && steps.psr_3.outputs.tag }}
+        if: ${{ !github.event.act && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ steps.psr_3.outputs.tag }} CHANGELOG.md --clobber
+        run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
 
-  # Kodi jobs Phase 3
-  kodi-zip-3:
-    needs: [release-phase-3]
-
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
-          fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-zip
+      - name: Build and upload Kodi artifacts (Phase 3)
+        uses: ./.github/actions/consolidated-kodi-zip
         with:
           kodi_project_name: script.module.example
           kodi_directory: script.module.example
-          version: ${{ needs.release-phase-3.outputs.version }}
+          version: ${{ steps.psr.outputs.version }}
           phase: 'phase-3'
 
-  kodi-publish-3:
-    needs: [release-phase-3, kodi-zip-3]
-    runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
-          fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-publish-to-release
+      - name: Publish Kodi addon to release (Phase 3)
+        uses: ./.github/actions/consolidated-kodi-publish-to-release
         with:
           kodi_project_name: script.module.example
-          version: ${{ needs.release-phase-3.outputs.version }}
-          tag: ${{ needs.release-phase-3.outputs.tag }}
+          version: ${{ steps.psr.outputs.version }}
+          tag: ${{ steps.psr.outputs.tag }}
           phase: 'phase-3'
 
   # Phase 4: v1.0.0 (docs only)
-  release-phase-4:
-    needs: [kodi-publish-3]
-    if: always() && needs.kodi-publish-3.result == 'success'
+  phase-4:
+    needs: phase-3
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -334,10 +267,11 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     outputs:
-      tag: ${{ steps.psr_4.outputs.tag }}
-      version: ${{ steps.psr_4.outputs.version }}
+      tag: ${{ steps.psr.outputs.tag }}
+      version: ${{ steps.psr.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout test branch
+        uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
@@ -363,22 +297,38 @@ jobs:
           source /tmp/venv/bin/activate
           psr-prepare
 
-      - name: Run PSR (Phase 4)
-        id: psr_4
+      - name: Run PSR (Phase 4 - docs only)
+        id: psr
         uses: ./.github/actions/run-psr
         with:
           mode: ${{ github.event.act && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ !github.event.act && steps.psr_4.outputs.tag }}
+        if: ${{ !github.event.act && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ steps.psr_4.outputs.tag }} CHANGELOG.md --clobber
+        run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
+
+      - name: Build and upload Kodi artifacts (Phase 4)
+        uses: ./.github/actions/consolidated-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          kodi_directory: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          phase: 'phase-4'
+
+      - name: Publish Kodi addon to release (Phase 4)
+        uses: ./.github/actions/consolidated-kodi-publish-to-release
+        with:
+          kodi_project_name: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          tag: ${{ steps.psr.outputs.tag }}
+          phase: 'phase-4'
 
   # Phase 5: v1.0.1
-  release-phase-5:
-    needs: [release-phase-4]
+  phase-5:
+    needs: phase-4
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -386,10 +336,11 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     outputs:
-      tag: ${{ steps.psr_5.outputs.tag }}
-      version: ${{ steps.psr_5.outputs.version }}
+      tag: ${{ steps.psr.outputs.tag }}
+      version: ${{ steps.psr.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout test branch
+        uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
@@ -416,101 +367,48 @@ jobs:
           psr-prepare
 
       - name: Run PSR (Phase 5)
-        id: psr_5
+        id: psr
         uses: ./.github/actions/run-psr
         with:
           mode: ${{ github.event.act && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ !github.event.act && steps.psr_5.outputs.tag }}
+        if: ${{ !github.event.act && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ steps.psr_5.outputs.tag }} CHANGELOG.md --clobber
+        run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
 
-  # Kodi jobs Phase 4
-  kodi-zip-4:
-    needs: [release-phase-4]
-
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
-          fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-zip
+      - name: Build and upload Kodi artifacts (Phase 5)
+        uses: ./.github/actions/consolidated-kodi-zip
         with:
           kodi_project_name: script.module.example
           kodi_directory: script.module.example
-          version: ${{ needs.release-phase-4.outputs.version }}
-          phase: 'phase-4'
-
-  kodi-publish-4:
-    needs: [release-phase-4, kodi-zip-4]
-    runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
-          fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-publish-to-release
-        with:
-          kodi_project_name: script.module.example
-          version: ${{ needs.release-phase-4.outputs.version }}
-          tag: ${{ needs.release-phase-4.outputs.tag }}
-          phase: 'phase-4'
-
-  # Kodi jobs Phase 5
-  kodi-zip-5:
-    needs: [release-phase-5]
-
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
-          fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-zip
-        with:
-          kodi_project_name: script.module.example
-          kodi_directory: script.module.example
-          version: ${{ needs.release-phase-5.outputs.version }}
+          version: ${{ steps.psr.outputs.version }}
           phase: 'phase-5'
 
-  kodi-publish-5:
-    needs: [release-phase-5, kodi-zip-5]
-    runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
-          fetch-depth: 0
-      - uses: ./.github/actions/consolidated-kodi-publish-to-release
+      - name: Publish Kodi addon to release (Phase 5)
+        uses: ./.github/actions/consolidated-kodi-publish-to-release
         with:
           kodi_project_name: script.module.example
-          version: ${{ needs.release-phase-5.outputs.version }}
-          tag: ${{ needs.release-phase-5.outputs.tag }}
+          version: ${{ steps.psr.outputs.version }}
+          tag: ${{ steps.psr.outputs.tag }}
           phase: 'phase-5'
 
   # Post-release tests (both modes)
   post-release-tests:
-    needs: [kodi-publish-5]
+    needs: phase-5
     if: always()
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
       PSR_VALIDATE_REAL: ${{ github.event.act && '0' || '1' }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout test branch
+        uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
@@ -526,23 +424,17 @@ jobs:
         uses: ./.github/actions/install-dev-dependencies
 
       - name: Switch to test branch
-        run: |
-          git checkout ci/${{ github.event.client_payload.run_id }} || git checkout -b ci/${{ github.event.client_payload.run_id }}
+        run: git checkout ci/${{ github.event.client_payload.run_id }} 2>/dev/null || true
 
       - name: Run post-PSR tests
         uses: ./.github/actions/run-post-psr-tests
 
-      - name: Debug (ACT only)
-        if: ${{ github.event.act }}
-        run: |
-          echo "=== Tags ===" && git tag -l
-          echo "" && echo "=== Recent commits ===" && git --no-pager log --oneline -20
-          echo "" && echo "=== Branches ===" && git branch -v
-        continue-on-error: true
-
-      - name: Cleanup (ACT only)
-        if: ${{ always() && github.event.act }}
+      - name: Clean up test branch
+        if: always()
         run: |
           git checkout main || true
           git branch -D ci/${{ github.event.client_payload.run_id }} 2>/dev/null || true
-          git tag -d $(git tag) 2>/dev/null || true
+
+      - name: Final cleanup local tags
+        if: always()
+        run: git tag -d $(git tag) 2>/dev/null || true
