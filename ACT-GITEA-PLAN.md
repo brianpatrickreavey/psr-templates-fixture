@@ -405,23 +405,37 @@ act --file .github/workflows/test-harness.yml -j test-release --verbose
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| A1 | Not started | |
-| A2 | Not started | |
-| A3 | Not started | |
-| **Checkpoint A** | Pending | |
-| B1 | Not started | |
-| B2 | Not started | |
-| B3 | Not started | |
-| **Checkpoint B** | Pending | |
-| C1 | Not started | |
-| C2 | Not started | |
-| C3 | Not started | |
-| C4 | Not started | |
-| **Checkpoint C** | Pending | |
-| D1 | Not started | |
-| D2 | Not started | |
-| D3 | Not started | |
-| **Final Commit** | Pending | |
+| A1 | ✅ Completed | `.actrc` created with ubuntu-full image config |
+| A2 | ✅ Completed | `tools/init-gitea.sh` created (idempotent, ACT-aware) |
+| A3 | ✅ Completed | `test-harness.yml` updated with gitea service + GIT_URL detection + init/cleanup steps |
+| **Checkpoint A** | ✅ Committed | Fixture repo commit: "A1/A2: Add .actrc config and init-gitea.sh" |
+| B1 | ✅ Completed | `generate-and-push-commits` action accepts `git-url` input |
+| B2 | ✅ Completed | `run-psr` action accepts `git-url` input; configures remote in ACT mode |
+| B3 | ✅ Completed | `test-harness.yml` passes `git-url: ${{ env.GIT_URL }}` to all action calls |
+| **Checkpoint B** | ✅ Committed | Fixture repo commit: "A3+B1-B3: Add gitea service..." |
+| C1 | ✅ Completed | `generate_commits.py` docstring clarifies 5 phases with version progression |
+| C2 | ✅ Completed | `test-harness.yml` comments document all 5 phases and kodi tasks |
+| C3 | ✅ Completed | `architecture.md` updated: 5-phase design, local gitea testing section |
+| C4 | ✅ Completed | `environment.md` new section: "Local Testing with `act` and Gitea" with setup guide |
+| **Checkpoint C** | ✅ Committed | Fixture: "C1-C2: Update generate_commits.py..."; Templates: "C3-C4: Update architecture.md..." |
+| D1 | ⏳ In Progress | Local ACT run test |
+| D2 | Not started | GitHub mode verification |
+| D3 | Not started | Final cleanup and documentation |
+| **Final Commit** | Pending | TBD |
+
+### Key Decisions Made
+
+- `.actrc` uses ubuntu-full image for Docker support (gitea service needs Docker for health checks)
+- GIT_URL detected per-job in a shell step (avoids YAML parse-time context issues)
+- Actions accept optional `git-url` input with sensible defaults
+- Documentation covers both GitHub and ACT workflows
+- YAML linter warnings about `env.GIT_URL` are expected (variable set at runtime, not parse time)
+- No widespread conditionals needed; gitea initialization is idempotent and ACT-aware
+
+### Known Issues / Limitations
+
+- YAML linter reports "Context access might be invalid: GIT_URL" but this is a false positive; variable is set at runtime via `$GITHUB_ENV`
+- Gitea health check uses simple `curl` endpoint; depends on gitea image startup speed (~5-10s typical)
 
 ---
 

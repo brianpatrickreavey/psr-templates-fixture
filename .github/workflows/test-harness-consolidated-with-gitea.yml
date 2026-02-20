@@ -1,0 +1,522 @@
+name: PSR Template Test Harness (Consolidated with Gitea)
+
+on:
+  repository_dispatch:
+    types: [test-harness-run]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: psr-test-harness-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    # Gitea service for ACT local testing (only active when github.event.act is true)
+    services:
+      gitea:
+        image: gitea/gitea:latest
+        options: >-
+          --hostname localhost
+          --health-cmd "curl http://localhost:3000"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 3000:3000
+          - 22:22
+        env:
+          GITEA_ROOT_URL: http://localhost:3000
+          GITEA_DEFAULT_THEME: auto
+    env:
+      UV_VENV: /tmp/venv
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    outputs:
+      test_branch: ${{ steps.compute-branch.outputs.test_branch }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          repository: ${{ github.event.act && 'brianpatrickreavey/psr-templates-fixture' || github.repository }}
+
+      - name: Compute branch name
+        id: compute-branch
+        run: |
+          if [ "${{ github.event.act }}" = "true" ]; then
+            TEST_BRANCH="ci/${ACT_RUN_ID}"
+          else
+            TEST_BRANCH="ci/${{ github.event.client_payload.run_id }}"
+          fi
+          echo "test_branch=${TEST_BRANCH}" >> $GITHUB_OUTPUT
+
+      - name: Initialize gitea repository (ACT mode only)
+        if: github.event.act
+        run: |
+          # Script checks $ACT internally and skips if not in ACT mode
+          bash ./tools/init-gitea.sh
+
+      - name: Cleanup tags and releases (GitHub mode only)
+        if: ${{ !github.event.act }}
+        uses: ./.github/actions/consolidated-cleanup-tags-and-releases
+
+  pre-release-tests:
+    runs-on: ubuntu-latest
+    needs: setup
+    env:
+      UV_VENV: /tmp/venv
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          repository: ${{ github.event.act && 'brianpatrickreavey/psr-templates-fixture' || github.repository }}
+
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
+
+      - name: Install dev dependencies
+        uses: ./.github/actions/install-dev-dependencies
+
+      - name: Create test branch
+        uses: ./.github/actions/create-test-branch
+        with:
+          test_branch: ${{ needs.setup.outputs.test_branch }}
+
+      - name: Run pre-PSR integration tests
+        uses: ./.github/actions/run-pre-psr-tests
+
+  # Phase 1: v0.1.0
+  phase-1:
+    needs: [setup, pre-release-tests]
+    runs-on: ubuntu-latest
+    env:
+      UV_VENV: /tmp/venv
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    outputs:
+      tag: ${{ steps.psr.outputs.tag }}
+      version: ${{ steps.psr.outputs.version }}
+    steps:
+      - name: Checkout test branch
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ needs.setup.outputs.test_branch }}
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
+
+      - name: Install dev dependencies
+        uses: ./.github/actions/install-dev-dependencies
+
+      - name: Generate commits (Phase 1)
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '1'
+          branch: ${{ needs.setup.outputs.test_branch }}
+
+      - name: Run psr_prepare (Phase 1)
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
+
+      - name: Run PSR (Phase 1)
+        id: psr
+        uses: ./.github/actions/run-psr
+        with:
+          mode: ${{ github.event.act && 'act' || 'github' }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload CHANGELOG (GitHub only)
+        if: ${{ !github.event.act && steps.psr.outputs.tag }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
+
+      - name: Build and upload Kodi artifacts (Phase 1)
+        uses: ./.github/actions/consolidated-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          kodi_directory: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          phase: 'phase-1'
+
+      - name: Publish Kodi addon to release (Phase 1)
+        uses: ./.github/actions/consolidated-kodi-publish-to-release
+        with:
+          kodi_project_name: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          tag: ${{ steps.psr.outputs.tag }}
+          phase: 'phase-1'
+
+  # Phase 2: v0.2.0
+  phase-2:
+    needs: [setup, phase-1]
+    runs-on: ubuntu-latest
+    env:
+      UV_VENV: /tmp/venv
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    outputs:
+      tag: ${{ steps.psr.outputs.tag }}
+      version: ${{ steps.psr.outputs.version }}
+    steps:
+      - name: Checkout test branch
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ needs.setup.outputs.test_branch }}
+          fetch-depth: 0
+
+      - name: Add local git remote (ACT mode)
+        if: github.event.act
+        run: |
+          git remote add local file:///local-git-origin/fixture.git
+          git fetch local || true
+
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
+
+      - name: Install dev dependencies
+        uses: ./.github/actions/install-dev-dependencies
+
+      - name: Generate commits (Phase 2)
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '2'
+          branch: ${{ needs.setup.outputs.test_branch }}
+
+      - name: Run psr_prepare (Phase 2)
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
+
+      - name: Run PSR (Phase 2)
+        id: psr
+        uses: ./.github/actions/run-psr
+        with:
+          mode: ${{ github.event.act && 'act' || 'github' }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload CHANGELOG (GitHub only)
+        if: ${{ !github.event.act && steps.psr.outputs.tag }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
+
+      - name: Build and upload Kodi artifacts (Phase 2)
+        uses: ./.github/actions/consolidated-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          kodi_directory: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          phase: 'phase-2'
+
+      - name: Publish Kodi addon to release (Phase 2)
+        uses: ./.github/actions/consolidated-kodi-publish-to-release
+        with:
+          kodi_project_name: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          tag: ${{ steps.psr.outputs.tag }}
+          phase: 'phase-2'
+
+  # Phase 3: v1.0.0 (force major)
+  phase-3:
+    needs: [setup, phase-2]
+    runs-on: ubuntu-latest
+    env:
+      UV_VENV: /tmp/venv
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    outputs:
+      tag: ${{ steps.psr.outputs.tag }}
+      version: ${{ steps.psr.outputs.version }}
+    steps:
+      - name: Checkout test branch
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ needs.setup.outputs.test_branch }}
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
+
+      - name: Install dev dependencies
+        uses: ./.github/actions/install-dev-dependencies
+
+      - name: Generate commits (Phase 3)
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '3'
+          branch: ${{ needs.setup.outputs.test_branch }}
+
+      - name: Run psr_prepare (Phase 3)
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
+
+      - name: Run PSR (Phase 3 - force major)
+        id: psr
+        uses: ./.github/actions/run-psr
+        with:
+          mode: ${{ github.event.act && 'act' || 'github' }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: major
+
+      - name: Upload CHANGELOG (GitHub only)
+        if: ${{ !github.event.act && steps.psr.outputs.tag }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
+
+      - name: Build and upload Kodi artifacts (Phase 3)
+        uses: ./.github/actions/consolidated-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          kodi_directory: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          phase: 'phase-3'
+
+      - name: Publish Kodi addon to release (Phase 3)
+        uses: ./.github/actions/consolidated-kodi-publish-to-release
+        with:
+          kodi_project_name: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          tag: ${{ steps.psr.outputs.tag }}
+          phase: 'phase-3'
+
+  # Phase 4: v1.0.0 (docs only)
+  phase-4:
+    needs: [setup, phase-3]
+    runs-on: ubuntu-latest
+    env:
+      UV_VENV: /tmp/venv
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    outputs:
+      tag: ${{ steps.psr.outputs.tag }}
+      version: ${{ steps.psr.outputs.version }}
+    steps:
+      - name: Checkout test branch
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ needs.setup.outputs.test_branch }}
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
+
+      - name: Install dev dependencies
+        uses: ./.github/actions/install-dev-dependencies
+
+      - name: Generate commits (Phase 4)
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '4'
+          branch: ${{ needs.setup.outputs.test_branch }}
+
+      - name: Run psr_prepare (Phase 4)
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
+
+      - name: Run PSR (Phase 4 - docs only)
+        id: psr
+        uses: ./.github/actions/run-psr
+        with:
+          mode: ${{ github.event.act && 'act' || 'github' }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload CHANGELOG (GitHub only)
+        if: ${{ !github.event.act && steps.psr.outputs.tag }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
+
+      - name: Build and upload Kodi artifacts (Phase 4)
+        uses: ./.github/actions/consolidated-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          kodi_directory: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          phase: 'phase-4'
+
+      - name: Publish Kodi addon to release (Phase 4)
+        uses: ./.github/actions/consolidated-kodi-publish-to-release
+        with:
+          kodi_project_name: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          tag: ${{ steps.psr.outputs.tag }}
+          phase: 'phase-4'
+
+  # Phase 5: v1.0.1
+  phase-5:
+    needs: [setup, phase-4]
+    runs-on: ubuntu-latest
+    env:
+      UV_VENV: /tmp/venv
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    outputs:
+      tag: ${{ steps.psr.outputs.tag }}
+      version: ${{ steps.psr.outputs.version }}
+    steps:
+      - name: Checkout test branch
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ needs.setup.outputs.test_branch }}
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
+
+      - name: Install dev dependencies
+        uses: ./.github/actions/install-dev-dependencies
+
+      - name: Generate commits (Phase 5)
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '5'
+          branch: ${{ needs.setup.outputs.test_branch }}
+
+      - name: Run psr_prepare (Phase 5)
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
+
+      - name: Run PSR (Phase 5)
+        id: psr
+        uses: ./.github/actions/run-psr
+        with:
+          mode: ${{ github.event.act && 'act' || 'github' }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload CHANGELOG (GitHub only)
+        if: ${{ !github.event.act && steps.psr.outputs.tag }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
+
+      - name: Build and upload Kodi artifacts (Phase 5)
+        uses: ./.github/actions/consolidated-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          kodi_directory: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          phase: 'phase-5'
+
+      - name: Publish Kodi addon to release (Phase 5)
+        uses: ./.github/actions/consolidated-kodi-publish-to-release
+        with:
+          kodi_project_name: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          tag: ${{ steps.psr.outputs.tag }}
+          phase: 'phase-5'
+
+  # Post-release tests (both modes)
+  post-release-tests:
+    needs: [setup, phase-5]
+    if: always()
+    runs-on: ubuntu-latest
+    env:
+      UV_VENV: /tmp/venv
+      PSR_VALIDATE_REAL: ${{ github.event.act && '0' || '1' }}
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    steps:
+      - name: Checkout test branch
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ needs.setup.outputs.test_branch }}
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
+
+      - name: Install dev dependencies
+        uses: ./.github/actions/install-dev-dependencies
+
+      - name: Switch to test branch
+        run: git checkout ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
+
+      - name: Run post-PSR tests
+        uses: ./.github/actions/run-post-psr-tests
+
+      - name: Clean up test branch
+        if: always()
+        run: |
+          git checkout main || true
+          git branch -D ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
+
+      - name: Final cleanup local tags
+        if: always()
+        run: git tag -d $(git tag) 2>/dev/null || true
+
+  # Post-workflow cleanup: Remove GitHub artifacts (experimental)
+  # NOTE: This cleanup job runs on GitHub mode only after all phases complete.
+  #       Controlled by cleanup_after flag in dispatch payload (default: true).
+  #       For ACT mode: Use `make clean-tags-and-releases` Makefile target instead.
+  cleanup:
+    needs: [post-release-tests]
+    if: ${{ !github.event.act && github.event.client_payload.cleanup_after && always() }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout fixture repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Delete test tags and releases
+        run: |
+          echo "Cleaning up test artifacts from GitHub..."
+          # Delete test tags (v0.1.0, v0.2.0, v1.0.0)
+          for tag in v0.1.0 v0.2.0 v1.0.0; do
+            gh api repos/${{ github.repository }}/git/refs/tags/$tag -X DELETE 2>/dev/null || echo "Tag $tag not found (already deleted)"
+          done
+          # Delete test releases
+          gh api repos/${{ github.repository }}/releases --jq '.[].id' | xargs -I {} gh api repos/${{ github.repository }}/releases/{} -X DELETE 2>/dev/null || echo "No releases to delete"
+          # Delete test branch
+          git push origin --delete ci/${{ github.event.client_payload.run_id }} 2>/dev/null || echo "Branch already deleted"
+          echo "Cleanup complete"

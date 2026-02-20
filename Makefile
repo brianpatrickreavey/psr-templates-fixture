@@ -1,4 +1,4 @@
-.PHONY: ci-simulate ci-simulate-consolidated clean-tags clean-releases clean-tags-and-releases clean test unzip-artifacts
+.PHONY: ci-simulate ci-simulate-consolidated ci-simulate-consolidated-gitea clean-tags clean-releases clean-tags-and-releases clean test unzip-artifacts
 
 # Run tests
 test:
@@ -54,6 +54,21 @@ ci-simulate-consolidated:
 	  | tee .artifacts/$$timestamp/ci-simulate-consolidated.log; \
 	echo "Artifacts stored in .artifacts/$$timestamp"; \
 	echo "Log file: .artifacts/$$timestamp/ci-simulate-consolidated.log"
+
+# Simulate CI with consolidated-with-gitea workflow (experimental with local git server)
+ci-simulate-consolidated-gitea:
+	@timestamp=$$(date +%Y%m%d-%H%M%S); \
+	mkdir -p .artifacts/$$timestamp; \
+	echo "Running consolidated-with-gitea CI simulation (artifacts: .artifacts/$$timestamp)"; \
+	act repository_dispatch \
+	  --artifact-server-path ".artifacts/$$timestamp" \
+	  -W .github/workflows/test-harness-consolidated-with-gitea.yml \
+	  -e .act/event.json \
+	  --container-architecture linux/amd64 \
+	  --env ACT_RUN_ID="act-test-run-$$timestamp" \
+	  | tee .artifacts/$$timestamp/ci-simulate-consolidated-gitea.log; \
+	echo "Artifacts stored in .artifacts/$$timestamp"; \
+	echo "Log file: .artifacts/$$timestamp/ci-simulate-consolidated-gitea.log"
 
 # Clean up all tags in the fixture repo
 clean-tags:
