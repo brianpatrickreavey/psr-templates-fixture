@@ -167,8 +167,8 @@ jobs:
 
   # Phase 2: v0.2.0
   release-phase-2:
-    needs: [detect-environment, kodi-publish-1, kodi-publish-1-stub]
-    if: always() && (needs.kodi-publish-1.result == 'success' || needs.detect-environment.outputs.is_act == 'true')
+    needs: [kodi-publish-1, kodi-publish-1-stub]
+    if: always() && (needs.kodi-publish-1.result == 'success' || github.event.act)
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -201,7 +201,7 @@ jobs:
           branch: ci/${{ github.event.client_payload.run_id }}
 
       - name: Debug addon.xml (ACT only)
-        if: needs.detect-environment.outputs.is_act == 'true'
+        if: ${{ github.event.act }}
         run: |
           echo "=== addon.xml before Phase 2 psr_prepare ===" && cat script.module.example/addon.xml
           echo "" && echo "=== File check ===" && wc -c script.module.example/addon.xml && file script.module.example/addon.xml
@@ -217,19 +217,19 @@ jobs:
         id: psr_2
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ needs.detect-environment.outputs.is_act == 'true' && 'act' || 'github' }}
+          mode: ${{ github.event.act && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: needs.detect-environment.outputs.is_act != 'true' && steps.psr_2.outputs.tag
+        if: ${{ !github.event.act && steps.psr_2.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr_2.outputs.tag }} CHANGELOG.md --clobber
 
   # Kodi jobs for Phase 2 (GitHub only)
   kodi-check-2:
-    needs: [detect-environment, release-phase-2]
-    if: needs.detect-environment.outputs.is_act != 'true'
+    needs: [release-phase-2]
+    if: ${{ !github.event.act }}
     runs-on: ubuntu-latest
     outputs:
       is_kodi: ${{ steps.check.outputs.is_kodi }}
@@ -245,8 +245,8 @@ jobs:
         uses: ./.github/actions/check-kodi-project
 
   kodi-zip-2:
-    needs: [detect-environment, release-phase-2, kodi-check-2]
-    if: needs.detect-environment.outputs.is_act != 'true' && needs.kodi-check-2.outputs.is_kodi == 'true'
+    needs: [release-phase-2, kodi-check-2]
+    if: ${{ !github.event.act && needs.kodi-check-2.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -262,8 +262,8 @@ jobs:
           phase: 'phase-2'
 
   kodi-publish-2:
-    needs: [detect-environment, release-phase-2, kodi-check-2, kodi-zip-2]
-    if: needs.detect-environment.outputs.is_act != 'true' && needs.kodi-check-2.outputs.is_kodi == 'true'
+    needs: [release-phase-2, kodi-check-2, kodi-zip-2]
+    if: ${{ !github.event.act && needs.kodi-check-2.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -281,16 +281,16 @@ jobs:
           phase: 'phase-2'
 
   kodi-publish-2-stub:
-    needs: [detect-environment, release-phase-2]
-    if: needs.detect-environment.outputs.is_act == 'true'
+    needs: [release-phase-2]
+    if: ${{ github.event.act }}
     runs-on: ubuntu-latest
     steps:
       - run: echo "Skipping Kodi jobs in ACT mode"
 
   # Phase 3: v1.0.0 (force major)
   release-phase-3:
-    needs: [detect-environment, kodi-publish-2, kodi-publish-2-stub]
-    if: always() && (needs.kodi-publish-2.result == 'success' || needs.detect-environment.outputs.is_act == 'true')
+    needs: [kodi-publish-2, kodi-publish-2-stub]
+    if: always() && (needs.kodi-publish-2.result == 'success' || github.event.act)
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -331,20 +331,20 @@ jobs:
         id: psr_3
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ needs.detect-environment.outputs.is_act == 'true' && 'act' || 'github' }}
+          mode: ${{ github.event.act && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           force: major
 
       - name: Upload CHANGELOG (GitHub only)
-        if: needs.detect-environment.outputs.is_act != 'true' && steps.psr_3.outputs.tag
+        if: ${{ !github.event.act && steps.psr_3.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr_3.outputs.tag }} CHANGELOG.md --clobber
 
   # Kodi jobs Phase 3 (GitHub only)
   kodi-check-3:
-    needs: [detect-environment, release-phase-3]
-    if: needs.detect-environment.outputs.is_act != 'true'
+    needs: [release-phase-3]
+    if: ${{ !github.event.act }}
     runs-on: ubuntu-latest
     outputs:
       is_kodi: ${{ steps.check.outputs.is_kodi }}
@@ -360,8 +360,8 @@ jobs:
         uses: ./.github/actions/check-kodi-project
 
   kodi-zip-3:
-    needs: [detect-environment, release-phase-3, kodi-check-3]
-    if: needs.detect-environment.outputs.is_act != 'true' && needs.kodi-check-3.outputs.is_kodi == 'true'
+    needs: [release-phase-3, kodi-check-3]
+    if: ${{ !github.event.act && needs.kodi-check-3.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -377,8 +377,8 @@ jobs:
           phase: 'phase-3'
 
   kodi-publish-3:
-    needs: [detect-environment, release-phase-3, kodi-check-3, kodi-zip-3]
-    if: needs.detect-environment.outputs.is_act != 'true' && needs.kodi-check-3.outputs.is_kodi == 'true'
+    needs: [release-phase-3, kodi-check-3, kodi-zip-3]
+    if: ${{ !github.event.act && needs.kodi-check-3.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -396,16 +396,16 @@ jobs:
           phase: 'phase-3'
 
   kodi-publish-3-stub:
-    needs: [detect-environment, release-phase-3]
-    if: needs.detect-environment.outputs.is_act == 'true'
+    needs: [release-phase-3]
+    if: ${{ github.event.act }}
     runs-on: ubuntu-latest
     steps:
       - run: echo "Skipping Kodi jobs in ACT mode"
 
   # Phase 4: v1.0.0 (docs only)
   release-phase-4:
-    needs: [detect-environment, kodi-publish-3, kodi-publish-3-stub]
-    if: always() && (needs.kodi-publish-3.result == 'success' || needs.detect-environment.outputs.is_act == 'true')
+    needs: [kodi-publish-3, kodi-publish-3-stub]
+    if: always() && (needs.kodi-publish-3.result == 'success' || github.event.act)
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -446,18 +446,18 @@ jobs:
         id: psr_4
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ needs.detect-environment.outputs.is_act == 'true' && 'act' || 'github' }}
+          mode: ${{ github.event.act && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: needs.detect-environment.outputs.is_act != 'true' && steps.psr_4.outputs.tag
+        if: ${{ !github.event.act && steps.psr_4.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr_4.outputs.tag }} CHANGELOG.md --clobber
 
   # Phase 5: v1.0.1
   release-phase-5:
-    needs: [detect-environment, release-phase-4]
+    needs: [release-phase-4]
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -498,19 +498,19 @@ jobs:
         id: psr_5
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ needs.detect-environment.outputs.is_act == 'true' && 'act' || 'github' }}
+          mode: ${{ github.event.act && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: needs.detect-environment.outputs.is_act != 'true' && steps.psr_5.outputs.tag
+        if: ${{ !github.event.act && steps.psr_5.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr_5.outputs.tag }} CHANGELOG.md --clobber
 
-  # Kodi jobs Phase 4 (GitHub only) 
+  # Kodi jobs Phase 4 (GitHub only)
   kodi-check-4:
-    needs: [detect-environment, release-phase-4]
-    if: needs.detect-environment.outputs.is_act != 'true'
+    needs: [release-phase-4]
+    if: ${{ !github.event.act }}
     runs-on: ubuntu-latest
     outputs:
       is_kodi: ${{ steps.check.outputs.is_kodi }}
@@ -526,8 +526,8 @@ jobs:
         uses: ./.github/actions/check-kodi-project
 
   kodi-zip-4:
-    needs: [detect-environment, release-phase-4, kodi-check-4]
-    if: needs.detect-environment.outputs.is_act != 'true' && needs.kodi-check-4.outputs.is_kodi == 'true'
+    needs: [release-phase-4, kodi-check-4]
+    if: ${{ !github.event.act && needs.kodi-check-4.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -543,8 +543,8 @@ jobs:
           phase: 'phase-4'
 
   kodi-publish-4:
-    needs: [detect-environment, release-phase-4, kodi-check-4, kodi-zip-4]
-    if: needs.detect-environment.outputs.is_act != 'true' && needs.kodi-check-4.outputs.is_kodi == 'true'
+    needs: [release-phase-4, kodi-check-4, kodi-zip-4]
+    if: ${{ !github.event.act && needs.kodi-check-4.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -562,16 +562,16 @@ jobs:
           phase: 'phase-4'
 
   kodi-publish-4-stub:
-    needs: [detect-environment, release-phase-4]
-    if: needs.detect-environment.outputs.is_act == 'true'
+    needs: [release-phase-4]
+    if: ${{ github.event.act }}
     runs-on: ubuntu-latest
     steps:
       - run: echo "Skipping Kodi jobs in ACT mode"
 
   # Kodi jobs Phase 5 (GitHub only)
   kodi-check-5:
-    needs: [detect-environment, release-phase-5]
-    if: needs.detect-environment.outputs.is_act != 'true'
+    needs: [release-phase-5]
+    if: ${{ !github.event.act }}
     runs-on: ubuntu-latest
     outputs:
       is_kodi: ${{ steps.check.outputs.is_kodi }}
@@ -587,8 +587,8 @@ jobs:
         uses: ./.github/actions/check-kodi-project
 
   kodi-zip-5:
-    needs: [detect-environment, release-phase-5, kodi-check-5]
-    if: needs.detect-environment.outputs.is_act != 'true' && needs.kodi-check-5.outputs.is_kodi == 'true'
+    needs: [release-phase-5, kodi-check-5]
+    if: ${{ !github.event.act && needs.kodi-check-5.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -604,8 +604,8 @@ jobs:
           phase: 'phase-5'
 
   kodi-publish-5:
-    needs: [detect-environment, release-phase-5, kodi-check-5, kodi-zip-5]
-    if: needs.detect-environment.outputs.is_act != 'true' && needs.kodi-check-5.outputs.is_kodi == 'true'
+    needs: [release-phase-5, kodi-check-5, kodi-zip-5]
+    if: ${{ !github.event.act && needs.kodi-check-5.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -623,20 +623,20 @@ jobs:
           phase: 'phase-5'
 
   kodi-publish-5-stub:
-    needs: [detect-environment, release-phase-5]
-    if: needs.detect-environment.outputs.is_act == 'true'
+    needs: [release-phase-5]
+    if: ${{ github.event.act }}
     runs-on: ubuntu-latest
     steps:
       - run: echo "Skipping Kodi jobs in ACT mode"
 
   # Post-release tests (both modes)
   post-release-tests:
-    needs: [detect-environment, kodi-publish-5, kodi-publish-5-stub]
+    needs: [kodi-publish-5, kodi-publish-5-stub]
     if: always()
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
-      PSR_VALIDATE_REAL: ${{ needs.detect-environment.outputs.is_act == 'true' && '0' || '1' }}
+      PSR_VALIDATE_REAL: ${{ github.event.act && '0' || '1' }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -662,7 +662,7 @@ jobs:
         uses: ./.github/actions/run-post-psr-tests
 
       - name: Debug (ACT only)
-        if: needs.detect-environment.outputs.is_act == 'true'
+        if: ${{ github.event.act }}
         run: |
           echo "=== Tags ===" && git tag -l
           echo "" && echo "=== Recent commits ===" && git --no-pager log --oneline -20
@@ -670,7 +670,7 @@ jobs:
         continue-on-error: true
 
       - name: Cleanup (ACT only)
-        if: always() && needs.detect-environment.outputs.is_act == 'true'
+        if: ${{ always() && github.event.act }}
         run: |
           git checkout main || true
           git branch -D ci/${{ github.event.client_payload.run_id }} 2>/dev/null || true

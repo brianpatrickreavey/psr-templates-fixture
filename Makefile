@@ -1,4 +1,4 @@
-.PHONY: ci-simulate clean-tags clean-releases clean-tags-and-releases clean test unzip-artifacts
+.PHONY: ci-simulate ci-simulate-consolidated clean-tags clean-releases clean-tags-and-releases clean test unzip-artifacts
 
 # Run tests
 test:
@@ -32,6 +32,18 @@ ci-simulate:
 	act repository_dispatch \
 	  --artifact-server-path ".artifacts/$$timestamp" \
 	  -W .github/workflows/test-harness-act.yml \
+	  -e .act/event.json \
+	  --container-architecture linux/amd64 \
+	  --env GITHUB_RUN_ID="$$timestamp"; \
+	echo "Artifacts stored in .artifacts/$$timestamp"
+
+# Simulate CI with consolidated workflow
+ci-simulate-consolidated:
+	@timestamp=$$(date +%Y%m%d-%H%M%S); \
+	echo "Running consolidated CI simulation (artifacts: .artifacts/$$timestamp)"; \
+	act repository_dispatch \
+	  --artifact-server-path ".artifacts/$$timestamp" \
+	  -W .github/workflows/test-harness-consolidated.yml \
 	  -e .act/event.json \
 	  --container-architecture linux/amd64 \
 	  --env GITHUB_RUN_ID="$$timestamp"; \
