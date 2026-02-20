@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.0.1 (2026-02-20)
+
+### Bug Fixes
+
+
+- [PHASE-5] handle edge case in validation (ci-test-run)
+- [PHASE-5] correct sorting order in results (ci-test-run)
+
+### Documentation
+
+
+- [PHASE-4] improve README examples (ci-test-run)
+- [PHASE-4] update API documentation (ci-test-run)
+
 ## v1.0.0 (2026-02-20)
 
 ### Features

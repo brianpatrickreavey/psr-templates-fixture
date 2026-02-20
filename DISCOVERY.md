@@ -21,12 +21,13 @@ All attributes available in `ctx`:
 
 ### ctx.history.released - All Releases
 
-**Total count:** 3
+**Total count:** 4
 
 **All versions available:**
   - `0.1.0`
   - `0.1.1`
   - `1.0.0`
+  - `1.0.1`
 
 ## Individual Release Structure
 
@@ -1420,8 +1421,8 @@ Element types available: bug fixes
 ### Release: v1.0.0
 
 #### Direct Attributes
-- **committer**: github-actions[bot]
-- **tagged_date**: 2026-02-20 15:15:24.440485+00:00
+- **committer**: root
+- **tagged_date**: 2026-02-20 15:15:24+00:00
 - **tagger**: github-actions[bot]
 - **version**: 1.0.0
 
@@ -1443,13 +1444,53 @@ Element types available: features
 - **breaking_descriptions**:
   - (none)
 
+### Release: v1.0.1
+
+#### Direct Attributes
+- **committer**: github-actions[bot]
+- **tagged_date**: 2026-02-20 15:15:52.485121+00:00
+- **tagger**: github-actions[bot]
+- **version**: 1.0.1
+
+#### Elements Structure
+
+Element types available: bug fixes, documentation
+
+##### BUG FIXES Elements (2 total)
+
+**BUG FIXES #1:**
+- **descriptions**:
+  - `[PHASE-5] handle edge case in validation (ci-test-run)`
+- **breaking_descriptions**:
+  - (none)
+
+**BUG FIXES #2:**
+- **descriptions**:
+  - `[PHASE-5] correct sorting order in results (ci-test-run)`
+- **breaking_descriptions**:
+  - (none)
+
+##### DOCUMENTATION Elements (2 total)
+
+**DOCUMENTATION #1:**
+- **descriptions**:
+  - `[PHASE-4] improve README examples (ci-test-run)`
+- **breaking_descriptions**:
+  - (none)
+
+**DOCUMENTATION #2:**
+- **descriptions**:
+  - `[PHASE-4] update API documentation (ci-test-run)`
+- **breaking_descriptions**:
+  - (none)
+
 ## String Filtering & Text Processing
 
 Jinja2 allows calling Python methods and filters directly on strings:
 
 ### Date Formatting Example
 
-Release `v1.0.0` on: `2026-02-20`
+Release `v1.0.1` on: `2026-02-20`
 Full format: `February 20, 2026 at 15:15`
 
 ### String Operations
@@ -1470,10 +1511,10 @@ Common Jinja2 filters for collections:
 
 - **first**: Get first item
 - **last**: Get last item
-- **length**: `3` releases available
+- **length**: `4` releases available
 - **sort()**: Sort by attribute like `sort(attribute='version')`
 - **select()**, **reject()**: Filter items by test condition
-- **map()**: Extract attributes: `[Version(major=0, minor=1, patch=0, prerelease_token='rc', prerelease_revision=None, build_metadata='', tag_format='v{version}'), Version(major=0, minor=1, patch=1, prerelease_token='rc', prerelease_revision=None, build_metadata='', tag_format='v{version}'), Version(major=1, minor=0, patch=0, prerelease_token='rc', prerelease_revision=None, build_metadata='', tag_format='v{version}')]`
+- **map()**: Extract attributes: `[Version(major=0, minor=1, patch=0, prerelease_token='rc', prerelease_revision=None, build_metadata='', tag_format='v{version}'), Version(major=0, minor=1, patch=1, prerelease_token='rc', prerelease_revision=None, build_metadata='', tag_format='v{version}'), Version(major=1, minor=0, patch=0, prerelease_token='rc', prerelease_revision=None, build_metadata='', tag_format='v{version}'), Version(major=1, minor=0, patch=1, prerelease_token='rc', prerelease_revision=None, build_metadata='', tag_format='v{version}')]`
 - **sum()**: Sum numeric values
 - **min()**, **max()**: Find extremes
 
@@ -1481,12 +1522,13 @@ Common Jinja2 filters for collections:
 
 Working with release data structures:
 
-**Latest Release (v1.0.0):**
-- Element types: `features`
+**Latest Release (v1.0.1):**
+- Element types: `bug fixes, documentation`
 - Total commits:
-2
+4
 - Breakdown by type:
-  - features: 2
+  - bug fixes: 2
+  - documentation: 2
 
 ## PSR-Specific Filters (When Using Full PSR)
 
