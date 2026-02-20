@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="script.module.example" name="Example Script Module" version="1.0.0" provider-name="Example Provider">
+<addon id="script.module.example" name="Example Script Module" version="1.0.1" provider-name="Example Provider">
   <requires>
     <import addon="xbmc.python" version="3.0.0+" />
   </requires>
@@ -7,9 +7,12 @@
   <extension point="xbmc.addon.metadata">
     <description>A example script module for testing</description>
     <license>GPL-2.0-only</license>
-    <news>v1.0.0 (2026-02-20)
-    [feat] [PHASE-3] restructure database schema (ci-test-run)
-    [feat] [PHASE-3] redesign API endpoints (ci-test-run)
+    <news>v1.0.1 (2026-02-20)
+    [fix] [PHASE-5] handle edge case in validation (ci-test-run)
+    [fix] [PHASE-5] correct sorting order in results (ci-test-run)
+    
+    [docs] [PHASE-4] improve README examples (ci-test-run)
+    [docs] [PHASE-4] update API documentation (ci-test-run)
     </news>
   </extension>
 </addon>
