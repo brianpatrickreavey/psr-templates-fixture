@@ -40,6 +40,10 @@ jobs:
 
       - name: Cleanup tags and releases
         uses: ./.github/actions/consolidated-cleanup-tags-and-releases
+
+      - name: Create local bare repo (ACT mode)
+        if: github.event.act
+        run: git init --bare ${{ github.workspace }}/.local-git-origin/fixture.git
   pre-release-tests:
     runs-on: ubuntu-latest
     needs: setup
