@@ -41,10 +41,11 @@ jobs:
       - name: Cleanup tags and releases
         uses: ./.github/actions/consolidated-cleanup-tags-and-releases
 
-      - name: Create container persistence marker
+      - name: Create bare repo in /tmp
         run: |
-          echo "Container marker created at $(date -u +%Y-%m-%dT%H:%M:%SZ)" > /tmp/.test-persistence-marker
-          echo "Container persist test enabled"
+          git init --bare /tmp/test-harness-repo.git
+          echo "Bare repo created at /tmp/test-harness-repo.git"
+          ls -lah /tmp/test-harness-repo.git/
   pre-release-tests:
     runs-on: ubuntu-latest
     needs: setup
@@ -62,11 +63,12 @@ jobs:
 
       - name: Check container persistence (pre-release)
         run: |
-          if [ -f /tmp/.test-persistence-marker ]; then
-            echo "✓ Persistence marker found"
-            cat /tmp/.test-persistence-marker
+          if [ -d /tmp/test-harness-repo.git ]; then
+            echo "✓ Bare repo found in /tmp"
+            ls -lah /tmp/test-harness-repo.git/
           else
-            echo "✗ Persistence marker NOT found"
+            echo "✗ Bare repo NOT found in /tmp"
+            ls -la /tmp/ | head -20
           fi
 
       - name: Install uv
@@ -108,11 +110,12 @@ jobs:
 
       - name: Check container persistence (phase-1)
         run: |
-          if [ -f /tmp/.test-persistence-marker ]; then
-            echo "✓ Persistence marker found"
-            cat /tmp/.test-persistence-marker
+          if [ -d /tmp/test-harness-repo.git ]; then
+            echo "✓ Bare repo found in /tmp"
+            ls -lah /tmp/test-harness-repo.git/
           else
-            echo "✗ Persistence marker NOT found"
+            echo "✗ Bare repo NOT found in /tmp"
+            ls -la /tmp/ | head -20
           fi
 
       - name: Configure origin remote (ACT mode)
@@ -193,11 +196,12 @@ jobs:
 
       - name: Check container persistence (phase-2)
         run: |
-          if [ -f /tmp/.test-persistence-marker ]; then
-            echo "✓ Persistence marker found"
-            cat /tmp/.test-persistence-marker
+          if [ -d /tmp/test-harness-repo.git ]; then
+            echo "✓ Bare repo found in /tmp"
+            ls -lah /tmp/test-harness-repo.git/
           else
-            echo "✗ Persistence marker NOT found"
+            echo "✗ Bare repo NOT found in /tmp"
+            ls -la /tmp/ | head -20
           fi
 
       - name: Add local git remote (ACT mode)
@@ -277,11 +281,12 @@ jobs:
 
       - name: Check container persistence (phase-3)
         run: |
-          if [ -f /tmp/.test-persistence-marker ]; then
-            echo "✓ Persistence marker found"
-            cat /tmp/.test-persistence-marker
+          if [ -d /tmp/test-harness-repo.git ]; then
+            echo "✓ Bare repo found in /tmp"
+            ls -lah /tmp/test-harness-repo.git/
           else
-            echo "✗ Persistence marker NOT found"
+            echo "✗ Bare repo NOT found in /tmp"
+            ls -la /tmp/ | head -20
           fi
 
       - name: Configure origin remote (ACT mode)
@@ -363,11 +368,12 @@ jobs:
 
       - name: Check container persistence (phase-4)
         run: |
-          if [ -f /tmp/.test-persistence-marker ]; then
-            echo "✓ Persistence marker found"
-            cat /tmp/.test-persistence-marker
+          if [ -d /tmp/test-harness-repo.git ]; then
+            echo "✓ Bare repo found in /tmp"
+            ls -lah /tmp/test-harness-repo.git/
           else
-            echo "✗ Persistence marker NOT found"
+            echo "✗ Bare repo NOT found in /tmp"
+            ls -la /tmp/ | head -20
           fi
 
       - name: Configure origin remote (ACT mode)
@@ -448,11 +454,12 @@ jobs:
 
       - name: Check container persistence (phase-5)
         run: |
-          if [ -f /tmp/.test-persistence-marker ]; then
-            echo "✓ Persistence marker found"
-            cat /tmp/.test-persistence-marker
+          if [ -d /tmp/test-harness-repo.git ]; then
+            echo "✓ Bare repo found in /tmp"
+            ls -lah /tmp/test-harness-repo.git/
           else
-            echo "✗ Persistence marker NOT found"
+            echo "✗ Bare repo NOT found in /tmp"
+            ls -la /tmp/ | head -20
           fi
 
       - name: Configure origin remote (ACT mode)
@@ -532,11 +539,12 @@ jobs:
 
       - name: Check container persistence (post-release)
         run: |
-          if [ -f /tmp/.test-persistence-marker ]; then
-            echo "✓ Persistence marker found"
-            cat /tmp/.test-persistence-marker
+          if [ -d /tmp/test-harness-repo.git ]; then
+            echo "✓ Bare repo found in /tmp"
+            ls -lah /tmp/test-harness-repo.git/
           else
-            echo "✗ Persistence marker NOT found"
+            echo "✗ Bare repo NOT found in /tmp"
+            ls -la /tmp/ | head -20
           fi
 
       - name: Install uv
