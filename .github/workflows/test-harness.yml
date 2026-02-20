@@ -11,9 +11,29 @@ concurrency:
   group: psr-test-harness-${{ github.repository }}
   cancel-in-progress: false
 
+env:
+  # GIT_URL selection: Use gitea in ACT mode (local testing), GitHub in production
+  GIT_URL: ${{ env.ACT && 'http://localhost:3000' || 'https://github.com' }}
+
 jobs:
   pre-release-tests:
     runs-on: ubuntu-latest
+    # Gitea service for ACT local testing (ignored by GitHub Actions)
+    services:
+      gitea:
+        image: gitea/gitea:latest
+        options: >-
+          --hostname localhost
+          --health-cmd "curl http://localhost:3000"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 3000:3000
+          - 22:22
+        env:
+          GITEA_ROOT_URL: http://localhost:3000
+          GITEA_DEFAULT_THEME: auto
     env:
       UV_VENV: /tmp/venv
     defaults:

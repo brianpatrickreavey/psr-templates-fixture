@@ -1,0 +1,13 @@
+# Act Configuration for Local Workflow Testing
+# This file configures the `act` tool to run GitHub Actions locally with gitea service support
+# Format: One flag per line, no special quoting
+
+# Use full Ubuntu image with Docker capabilities (required for gitea service container)
+-P ubuntu-latest=ghcr.io/catthehacker/ubuntu:full-latest
+
+# Set working directory (default is current directory)
+# -C /path/to/repo
+
+# Default: Run all jobs from specified workflow
+# Override with: act --job <job-name> to run a specific job
+# Example: act --file .github/workflows/test-harness.yml -j test-release
