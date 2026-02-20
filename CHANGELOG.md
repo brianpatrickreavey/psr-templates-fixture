@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.0.0 (2026-02-20)
+
+### Features
+
+
+- [PHASE-3] restructure database schema (ci-test-run)
+- [PHASE-3] redesign API endpoints (ci-test-run)
+
 ## v0.1.1 (2026-02-20)
 
 ### Bug Fixes
