@@ -96,7 +96,7 @@ jobs:
         if: github.event.act
         run: |
           git remote remove origin
-          git remote add origin file:///local-git-origin/fixture.git
+          git remote add origin file://${{ github.workspace }}/.local-git-origin/fixture.git
           git fetch origin || true
 
       - name: Install uv
@@ -247,7 +247,7 @@ jobs:
         if: github.event.act
         run: |
           git remote remove origin
-          git remote add origin file:///local-git-origin/fixture.git
+          git remote add origin file://${{ github.workspace }}/.local-git-origin/fixture.git
           git fetch origin || true
 
       - name: Install uv
@@ -324,7 +324,7 @@ jobs:
         if: github.event.act
         run: |
           git remote remove origin
-          git remote add origin file:///local-git-origin/fixture.git
+          git remote add origin file://${{ github.workspace }}/.local-git-origin/fixture.git
           git fetch origin || true
 
       - name: Install uv
@@ -400,7 +400,7 @@ jobs:
         if: github.event.act
         run: |
           git remote remove origin
-          git remote add origin file:///local-git-origin/fixture.git
+          git remote add origin file://${{ github.workspace }}/.local-git-origin/fixture.git
           git fetch origin || true
 
       - name: Install uv
