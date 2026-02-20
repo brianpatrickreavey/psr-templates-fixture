@@ -11,9 +11,6 @@ concurrency:
   group: psr-test-harness-${{ github.repository }}
   cancel-in-progress: false
 
-env:
-  TEST_BRANCH: ci/${{ github.event.act && 'act-' || 'gha' }}-${{ github.event.client_payload.run_id }}
-
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -35,9 +32,9 @@ jobs:
         id: compute-branch
         run: |
           if [ "${{ github.event.act }}" = "true" ]; then
-            TEST_BRANCH="ci/act-${ACT_RUN_ID}"
+            TEST_BRANCH="ci/${ACT_RUN_ID}"
           else
-            TEST_BRANCH="ci/gha-${{ github.event.client_payload.run_id }}"
+            TEST_BRANCH="ci/${{ github.event.client_payload.run_id }}"
           fi
           echo "test_branch=${TEST_BRANCH}" >> $GITHUB_OUTPUT
 
@@ -84,7 +81,7 @@ jobs:
 
   # Phase 1: v0.1.0
   phase-1:
-    needs: pre-release-tests
+    needs: [setup, pre-release-tests]
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -99,7 +96,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: ${{ env.TEST_BRANCH }}
+          ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
       - name: Install uv
@@ -115,7 +112,7 @@ jobs:
         uses: ./.github/actions/generate-and-push-commits
         with:
           phase: '1'
-          branch: ${{ env.TEST_BRANCH }}
+          branch: ${{ needs.setup.outputs.test_branch }}
 
       - name: Run psr_prepare (Phase 1)
         run: |
@@ -153,7 +150,7 @@ jobs:
 
   # Phase 2: v0.2.0
   phase-2:
-    needs: phase-1
+    needs: [setup, phase-1]
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -168,7 +165,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: ${{ env.TEST_BRANCH }}
+          ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
       - name: Install uv
@@ -184,7 +181,7 @@ jobs:
         uses: ./.github/actions/generate-and-push-commits
         with:
           phase: '2'
-          branch: ${{ env.TEST_BRANCH }}
+          branch: ${{ needs.setup.outputs.test_branch }}
 
       - name: Run psr_prepare (Phase 2)
         run: |
@@ -222,7 +219,7 @@ jobs:
 
   # Phase 3: v1.0.0 (force major)
   phase-3:
-    needs: phase-2
+    needs: [setup, phase-2]
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -237,7 +234,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: ${{ env.TEST_BRANCH }}
+          ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
       - name: Install uv
@@ -253,7 +250,7 @@ jobs:
         uses: ./.github/actions/generate-and-push-commits
         with:
           phase: '3'
-          branch: ${{ env.TEST_BRANCH }}
+          branch: ${{ needs.setup.outputs.test_branch }}
 
       - name: Run psr_prepare (Phase 3)
         run: |
@@ -292,7 +289,7 @@ jobs:
 
   # Phase 4: v1.0.0 (docs only)
   phase-4:
-    needs: phase-3
+    needs: [setup, phase-3]
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -307,7 +304,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: ${{ env.TEST_BRANCH }}
+          ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
       - name: Install uv
@@ -323,7 +320,7 @@ jobs:
         uses: ./.github/actions/generate-and-push-commits
         with:
           phase: '4'
-          branch: ${{ env.TEST_BRANCH }}
+          branch: ${{ needs.setup.outputs.test_branch }}
 
       - name: Run psr_prepare (Phase 4)
         run: |
@@ -361,7 +358,7 @@ jobs:
 
   # Phase 5: v1.0.1
   phase-5:
-    needs: phase-4
+    needs: [setup, phase-4]
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -376,7 +373,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: ${{ env.TEST_BRANCH }}
+          ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
       - name: Install uv
@@ -392,7 +389,7 @@ jobs:
         uses: ./.github/actions/generate-and-push-commits
         with:
           phase: '5'
-          branch: ${{ env.TEST_BRANCH }}
+          branch: ${{ needs.setup.outputs.test_branch }}
 
       - name: Run psr_prepare (Phase 5)
         run: |
@@ -430,7 +427,7 @@ jobs:
 
   # Post-release tests (both modes)
   post-release-tests:
-    needs: phase-5
+    needs: [setup, phase-5]
     if: always()
     runs-on: ubuntu-latest
     env:
@@ -444,7 +441,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
+          ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
       - name: Install uv
@@ -457,7 +454,7 @@ jobs:
         uses: ./.github/actions/install-dev-dependencies
 
       - name: Switch to test branch
-        run: git checkout ${{ env.TEST_BRANCH }} 2>/dev/null || true
+        run: git checkout ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
 
       - name: Run post-PSR tests
         uses: ./.github/actions/run-post-psr-tests
@@ -466,7 +463,7 @@ jobs:
         if: always()
         run: |
           git checkout main || true
-          git branch -D ${{ env.TEST_BRANCH }} 2>/dev/null || true
+          git branch -D ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
 
       - name: Final cleanup local tags
         if: always()
