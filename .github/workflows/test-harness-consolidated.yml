@@ -32,7 +32,9 @@ jobs:
 
       - name: Pre-cleanup (ACT mode)
         if: ${{ github.event.act }}
-        run: git tag -d $(git tag) 2>/dev/null || true
+        run: |
+          git tag -d $(git tag) 2>/dev/null || true
+          git push origin --delete $(git tag -l) 2>/dev/null || true
 
       - name: Install uv
         uses: ./.github/actions/install-uv
