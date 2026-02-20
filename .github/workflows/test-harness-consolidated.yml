@@ -40,12 +40,6 @@ jobs:
 
       - name: Cleanup tags and releases
         uses: ./.github/actions/consolidated-cleanup-tags-and-releases
-
-      - name: Create bare repo in /tmp
-        run: |
-          git init --bare /tmp/test-harness-repo.git
-          echo "Bare repo created at /tmp/test-harness-repo.git"
-          ls -lah /tmp/test-harness-repo.git/
   pre-release-tests:
     runs-on: ubuntu-latest
     needs: setup
@@ -60,16 +54,6 @@ jobs:
         with:
           fetch-depth: 0
           repository: ${{ github.event.act && 'brianpatrickreavey/psr-templates-fixture' || github.repository }}
-
-      - name: Check container persistence (pre-release)
-        run: |
-          if [ -d /tmp/test-harness-repo.git ]; then
-            echo "✓ Bare repo found in /tmp"
-            ls -lah /tmp/test-harness-repo.git/
-          else
-            echo "✗ Bare repo NOT found in /tmp"
-            ls -la /tmp/ | head -20
-          fi
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -107,23 +91,6 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
-
-      - name: Check container persistence (phase-1)
-        run: |
-          if [ -d /tmp/test-harness-repo.git ]; then
-            echo "✓ Bare repo found in /tmp"
-            ls -lah /tmp/test-harness-repo.git/
-          else
-            echo "✗ Bare repo NOT found in /tmp"
-            ls -la /tmp/ | head -20
-          fi
-
-      - name: Configure origin remote (ACT mode)
-        if: github.event.act
-        run: |
-          git remote remove origin
-          git remote add origin file://${{ github.workspace }}/.local-git-origin/fixture.git
-          git fetch origin || true
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -194,22 +161,6 @@ jobs:
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
-      - name: Check container persistence (phase-2)
-        run: |
-          if [ -d /tmp/test-harness-repo.git ]; then
-            echo "✓ Bare repo found in /tmp"
-            ls -lah /tmp/test-harness-repo.git/
-          else
-            echo "✗ Bare repo NOT found in /tmp"
-            ls -la /tmp/ | head -20
-          fi
-
-      - name: Add local git remote (ACT mode)
-        if: github.event.act
-        run: |
-          git remote add local file:///local-git-origin/fixture.git
-          git fetch local || true
-
       - name: Install uv
         uses: ./.github/actions/install-uv
 
@@ -278,23 +229,6 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
-
-      - name: Check container persistence (phase-3)
-        run: |
-          if [ -d /tmp/test-harness-repo.git ]; then
-            echo "✓ Bare repo found in /tmp"
-            ls -lah /tmp/test-harness-repo.git/
-          else
-            echo "✗ Bare repo NOT found in /tmp"
-            ls -la /tmp/ | head -20
-          fi
-
-      - name: Configure origin remote (ACT mode)
-        if: github.event.act
-        run: |
-          git remote remove origin
-          git remote add origin file://${{ github.workspace }}/.local-git-origin/fixture.git
-          git fetch origin || true
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -366,23 +300,6 @@ jobs:
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
-      - name: Check container persistence (phase-4)
-        run: |
-          if [ -d /tmp/test-harness-repo.git ]; then
-            echo "✓ Bare repo found in /tmp"
-            ls -lah /tmp/test-harness-repo.git/
-          else
-            echo "✗ Bare repo NOT found in /tmp"
-            ls -la /tmp/ | head -20
-          fi
-
-      - name: Configure origin remote (ACT mode)
-        if: github.event.act
-        run: |
-          git remote remove origin
-          git remote add origin file://${{ github.workspace }}/.local-git-origin/fixture.git
-          git fetch origin || true
-
       - name: Install uv
         uses: ./.github/actions/install-uv
 
@@ -452,23 +369,6 @@ jobs:
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
-      - name: Check container persistence (phase-5)
-        run: |
-          if [ -d /tmp/test-harness-repo.git ]; then
-            echo "✓ Bare repo found in /tmp"
-            ls -lah /tmp/test-harness-repo.git/
-          else
-            echo "✗ Bare repo NOT found in /tmp"
-            ls -la /tmp/ | head -20
-          fi
-
-      - name: Configure origin remote (ACT mode)
-        if: github.event.act
-        run: |
-          git remote remove origin
-          git remote add origin file://${{ github.workspace }}/.local-git-origin/fixture.git
-          git fetch origin || true
-
       - name: Install uv
         uses: ./.github/actions/install-uv
 
@@ -536,16 +436,6 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
-
-      - name: Check container persistence (post-release)
-        run: |
-          if [ -d /tmp/test-harness-repo.git ]; then
-            echo "✓ Bare repo found in /tmp"
-            ls -lah /tmp/test-harness-repo.git/
-          else
-            echo "✗ Bare repo NOT found in /tmp"
-            ls -la /tmp/ | head -20
-          fi
 
       - name: Install uv
         uses: ./.github/actions/install-uv
