@@ -105,7 +105,6 @@ jobs:
   # Kodi jobs for Phase 1 (GitHub only)
   kodi-check-1:
     needs: release-phase-1
-    if: ${{ !github.event.act }}
     runs-on: ubuntu-latest
     outputs:
       is_kodi: ${{ steps.check.outputs.is_kodi }}
@@ -119,11 +118,11 @@ jobs:
           fetch-depth: 0
       - name: Check for Kodi project
         id: check
-        uses: ./.github/actions/check-kodi-project
+        uses: ./.github/actions/consolidated-kodi-check
 
   kodi-zip-1:
     needs: [release-phase-1, kodi-check-1]
-    if: ${{ !github.event.act && needs.kodi-check-1.outputs.is_kodi == 'true' }}
+    if: ${{ needs.kodi-check-1.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -131,7 +130,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/build-kodi-zip
+      - uses: ./.github/actions/consolidated-kodi-zip
         with:
           kodi_project_name: ${{ needs.kodi-check-1.outputs.kodi_project_name }}
           kodi_directory: ${{ needs.kodi-check-1.outputs.kodi_directory }}
@@ -140,7 +139,7 @@ jobs:
 
   kodi-publish-1:
     needs: [release-phase-1, kodi-check-1, kodi-zip-1]
-    if: ${{ !github.event.act && needs.kodi-check-1.outputs.is_kodi == 'true' }}
+    if: ${{ needs.kodi-check-1.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -150,25 +149,17 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/publish-kodi-zip
+      - uses: ./.github/actions/consolidated-kodi-publish
         with:
           kodi_project_name: ${{ needs.kodi-check-1.outputs.kodi_project_name }}
           version: ${{ needs.release-phase-1.outputs.version }}
           tag: ${{ needs.release-phase-1.outputs.tag }}
           phase: 'phase-1'
 
-  # Stub for ACT mode (needed for job dependencies)
-  kodi-publish-1-stub:
-    needs: release-phase-1
-    if: ${{ github.event.act }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Skipping Kodi jobs in ACT mode"
-
   # Phase 2: v0.2.0
   release-phase-2:
-    needs: [kodi-publish-1, kodi-publish-1-stub]
-    if: always() && (needs.kodi-publish-1.result == 'success' || github.event.act)
+    needs: [kodi-publish-1]
+    if: always() && needs.kodi-publish-1.result == 'success'
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -229,7 +220,6 @@ jobs:
   # Kodi jobs for Phase 2 (GitHub only)
   kodi-check-2:
     needs: [release-phase-2]
-    if: ${{ !github.event.act }}
     runs-on: ubuntu-latest
     outputs:
       is_kodi: ${{ steps.check.outputs.is_kodi }}
@@ -242,11 +232,11 @@ jobs:
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
       - id: check
-        uses: ./.github/actions/check-kodi-project
+        uses: ./.github/actions/consolidated-kodi-check
 
   kodi-zip-2:
     needs: [release-phase-2, kodi-check-2]
-    if: ${{ !github.event.act && needs.kodi-check-2.outputs.is_kodi == 'true' }}
+    if: ${{ needs.kodi-check-2.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -254,7 +244,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/build-kodi-zip
+      - uses: ./.github/actions/consolidated-kodi-zip
         with:
           kodi_project_name: ${{ needs.kodi-check-2.outputs.kodi_project_name }}
           kodi_directory: ${{ needs.kodi-check-2.outputs.kodi_directory }}
@@ -263,7 +253,7 @@ jobs:
 
   kodi-publish-2:
     needs: [release-phase-2, kodi-check-2, kodi-zip-2]
-    if: ${{ !github.event.act && needs.kodi-check-2.outputs.is_kodi == 'true' }}
+    if: ${{ needs.kodi-check-2.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -273,7 +263,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/publish-kodi-zip
+      - uses: ./.github/actions/consolidated-kodi-publish
         with:
           kodi_project_name: ${{ needs.kodi-check-2.outputs.kodi_project_name }}
           version: ${{ needs.release-phase-2.outputs.version }}
@@ -344,7 +334,6 @@ jobs:
   # Kodi jobs Phase 3 (GitHub only)
   kodi-check-3:
     needs: [release-phase-3]
-    if: ${{ !github.event.act }}
     runs-on: ubuntu-latest
     outputs:
       is_kodi: ${{ steps.check.outputs.is_kodi }}
@@ -357,11 +346,11 @@ jobs:
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
       - id: check
-        uses: ./.github/actions/check-kodi-project
+        uses: ./.github/actions/consolidated-kodi-check
 
   kodi-zip-3:
     needs: [release-phase-3, kodi-check-3]
-    if: ${{ !github.event.act && needs.kodi-check-3.outputs.is_kodi == 'true' }}
+    if: ${{ needs.kodi-check-3.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -369,7 +358,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/build-kodi-zip
+      - uses: ./.github/actions/consolidated-kodi-zip
         with:
           kodi_project_name: ${{ needs.kodi-check-3.outputs.kodi_project_name }}
           kodi_directory: ${{ needs.kodi-check-3.outputs.kodi_directory }}
@@ -378,7 +367,7 @@ jobs:
 
   kodi-publish-3:
     needs: [release-phase-3, kodi-check-3, kodi-zip-3]
-    if: ${{ !github.event.act && needs.kodi-check-3.outputs.is_kodi == 'true' }}
+    if: ${{ needs.kodi-check-3.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -388,24 +377,17 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/publish-kodi-zip
+      - uses: ./.github/actions/consolidated-kodi-publish
         with:
           kodi_project_name: ${{ needs.kodi-check-3.outputs.kodi_project_name }}
           version: ${{ needs.release-phase-3.outputs.version }}
           tag: ${{ needs.release-phase-3.outputs.tag }}
           phase: 'phase-3'
 
-  kodi-publish-3-stub:
-    needs: [release-phase-3]
-    if: ${{ github.event.act }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Skipping Kodi jobs in ACT mode"
-
   # Phase 4: v1.0.0 (docs only)
   release-phase-4:
-    needs: [kodi-publish-3, kodi-publish-3-stub]
-    if: always() && (needs.kodi-publish-3.result == 'success' || github.event.act)
+    needs: [kodi-publish-3]
+    if: always() && needs.kodi-publish-3.result == 'success'
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -510,7 +492,6 @@ jobs:
   # Kodi jobs Phase 4 (GitHub only)
   kodi-check-4:
     needs: [release-phase-4]
-    if: ${{ !github.event.act }}
     runs-on: ubuntu-latest
     outputs:
       is_kodi: ${{ steps.check.outputs.is_kodi }}
@@ -523,11 +504,11 @@ jobs:
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
       - id: check
-        uses: ./.github/actions/check-kodi-project
+        uses: ./.github/actions/consolidated-kodi-check
 
   kodi-zip-4:
     needs: [release-phase-4, kodi-check-4]
-    if: ${{ !github.event.act && needs.kodi-check-4.outputs.is_kodi == 'true' }}
+    if: ${{ needs.kodi-check-4.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -535,7 +516,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/build-kodi-zip
+      - uses: ./.github/actions/consolidated-kodi-zip
         with:
           kodi_project_name: ${{ needs.kodi-check-4.outputs.kodi_project_name }}
           kodi_directory: ${{ needs.kodi-check-4.outputs.kodi_directory }}
@@ -544,7 +525,7 @@ jobs:
 
   kodi-publish-4:
     needs: [release-phase-4, kodi-check-4, kodi-zip-4]
-    if: ${{ !github.event.act && needs.kodi-check-4.outputs.is_kodi == 'true' }}
+    if: ${{ needs.kodi-check-4.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -554,24 +535,16 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/publish-kodi-zip
+      - uses: ./.github/actions/consolidated-kodi-publish
         with:
           kodi_project_name: ${{ needs.kodi-check-4.outputs.kodi_project_name }}
           version: ${{ needs.release-phase-4.outputs.version }}
           tag: ${{ needs.release-phase-4.outputs.tag }}
           phase: 'phase-4'
 
-  kodi-publish-4-stub:
-    needs: [release-phase-4]
-    if: ${{ github.event.act }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Skipping Kodi jobs in ACT mode"
-
   # Kodi jobs Phase 5 (GitHub only)
   kodi-check-5:
     needs: [release-phase-5]
-    if: ${{ !github.event.act }}
     runs-on: ubuntu-latest
     outputs:
       is_kodi: ${{ steps.check.outputs.is_kodi }}
@@ -584,11 +557,11 @@ jobs:
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
       - id: check
-        uses: ./.github/actions/check-kodi-project
+        uses: ./.github/actions/consolidated-kodi-check
 
   kodi-zip-5:
     needs: [release-phase-5, kodi-check-5]
-    if: ${{ !github.event.act && needs.kodi-check-5.outputs.is_kodi == 'true' }}
+    if: ${{ needs.kodi-check-5.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -596,7 +569,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/build-kodi-zip
+      - uses: ./.github/actions/consolidated-kodi-zip
         with:
           kodi_project_name: ${{ needs.kodi-check-5.outputs.kodi_project_name }}
           kodi_directory: ${{ needs.kodi-check-5.outputs.kodi_directory }}
@@ -605,7 +578,7 @@ jobs:
 
   kodi-publish-5:
     needs: [release-phase-5, kodi-check-5, kodi-zip-5]
-    if: ${{ !github.event.act && needs.kodi-check-5.outputs.is_kodi == 'true' }}
+    if: ${{ needs.kodi-check-5.outputs.is_kodi == 'true' }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -615,23 +588,16 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - uses: ./.github/actions/publish-kodi-zip
+      - uses: ./.github/actions/consolidated-kodi-publish
         with:
           kodi_project_name: ${{ needs.kodi-check-5.outputs.kodi_project_name }}
           version: ${{ needs.release-phase-5.outputs.version }}
           tag: ${{ needs.release-phase-5.outputs.tag }}
           phase: 'phase-5'
 
-  kodi-publish-5-stub:
-    needs: [release-phase-5]
-    if: ${{ github.event.act }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Skipping Kodi jobs in ACT mode"
-
   # Post-release tests (both modes)
   post-release-tests:
-    needs: [kodi-publish-5, kodi-publish-5-stub]
+    needs: [kodi-publish-5]
     if: always()
     runs-on: ubuntu-latest
     env:

@@ -1,0 +1,28 @@
+name: Consolidated Kodi Zip
+description: Build Kodi addon zip file, GitHub-only (skipped in ACT mode)
+
+inputs:
+  kodi_project_name:
+    description: Kodi project name
+    required: true
+  kodi_directory:
+    description: Kodi addon directory
+    required: true
+  version:
+    description: Version to build
+    required: true
+  phase:
+    description: Release phase name
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Build Kodi zip (GitHub only)
+      if: ${{ !github.event.act }}
+      uses: ./.github/actions/build-kodi-zip
+      with:
+        kodi_project_name: ${{ inputs.kodi_project_name }}
+        kodi_directory: ${{ inputs.kodi_directory }}
+        version: ${{ inputs.version }}
+        phase: ${{ inputs.phase }}
