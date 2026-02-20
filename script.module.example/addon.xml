@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="script.module.example" name="Example Script Module" version="0.1.0" provider-name="Example Provider">
+<addon id="script.module.example" name="Example Script Module" version="0.1.1" provider-name="Example Provider">
   <requires>
     <import addon="xbmc.python" version="3.0.0+" />
   </requires>
@@ -7,110 +7,9 @@
   <extension point="xbmc.addon.metadata">
     <description>A example script module for testing</description>
     <license>GPL-2.0-only</license>
-    <news>v0.1.0 (2026-02-20)
-    [feat] [PHASE-1] implement data caching layer (ci-test-run)
-    [feat] [PHASE-1] add user authentication system (ci-test-run)
-    [feat] implement bare repo approach for local ACT simulation
-    [feat] add hello world module to script.module.example
-    [feat] rearrange test phases with perf changelog behavior
-    [feat] add kodi addon zip building and publishing to test-harness-act.yml
-    [feat] upload CHANGELOG.md as release asset after each phase
-    [feat] implement multi-release CI pipeline for template validation
-    [feat] add multi-release integration tests for template rendering validation
-    [feat] integration with workflows - verify arranger config
-    [feat] phase 1c - complete post-PSR assertions and add validation tests
-    [feat] phase 1b - implement placeholder tests with commit validation
-    
-    [fix] use --bind flag and correct container workspace path for bare repo
-    [fix] correct indentation error in generate_commits.py
-    [fix] update create-test-branch action to use dynamic TEST_BRANCH naming
-    [fix] clean up both local and remote tags in pre-release step
-    [fix] remove if conditions from kodi-zip and kodi-publish jobs to enable artifact generation in ACT mode
-    [fix] set kodi check dummy outputs to true to enable artifact generation in ACT mode
-    [fix] enable kodi-zip to run in ACT mode to generate artifacts, rename publish to publish-to-release
-    [fix] disable git pager in debug step to prevent hanging
-    [fix] use activated venv instead of uv run for psr-prepare
-    [fix] update pre-PSR test to use psr_prepare instead of deprecated arranger
-    [fix] delete remote test branch before creating new one to avoid non-fast-forward errors
-    [fix] restore artifact-server-path in ci-simulate target
-    [fix] use uv run to execute psr-prepare from venv
-    [fix] use full path to psr-prepare executable in workflows
-    [fix] activate venv before running psr-prepare in workflows
-    [fix] update fixture config to use kodi-addon-directory key
-    [fix] correct phase mapping in generate_commits.py (phase_1_minor_bump)
-    [fix] push test branch to remote in create-test-branch action
-    [fix] remove early Pre-cleanup git step that breaks ACT
-    [fix] upgrade git in ACT to resolve segfault
-    [fix] prevent double installation of psr-templates in ACT
-    [fix] skip version number test in dry-run mode (ACT)
-    [fix] remove strict addon.xml id check in test
-    [fix] specify download path for artifact in kodi-publish job
-    [fix] simplify kodi-zip artifact creation and path handling
-    [fix] remove committed template files and gitignore templates/
-    [fix] use conventional commit parser instead of deprecated angular
-    [fix] enable local git tags and complete template rendering in PSR
-    [fix] run actual PSR publish instead of dry-run version query
-    [fix] remove noop mode so PSR actually renders templates in local testing
-    [fix] update check_kodi.py for flattened fixture structure
-    [fix] update fixture config and test to use correct PSR monorepo template structure
-    [fix] add template_dir to PSR config and update test expectations
-    [fix] specify kodi-addon-fixture directory for PSR execution
-    [fix] update arranger action to run from kodi-addon-fixture directory
-    [fix] remove uv sync from install-dev-dependencies-full composite
-    [fix] activate venv before installing dependencies in post-psr-tests
-    [fix] check correct pyproject.toml for kodi project detection
-    [fix] install arranger dependencies in psr-execution job
-    [fix] phase 1a - repair test fixtures and path references
-    
-    [docs] update REVERT.md checkpoint with final working state
-    
-    [refactor] use dynamic TEST_BRANCH variable for branch naming
-    [refactor] consolidate release phases with kodi operations into single per-phase jobs
-    [refactor] consolidate kodi jobs into composites, remove stub jobs, simplify workflow conditionals
-    [refactor] align test-harness.yml with 5-phase structure and psr_prepare integration
-    [refactor] Phase 4 docs commits instead of perf, remove invalid PSR config
-    [refactor] rename tests and add phase dependencies to eliminate race conditions
-    [refactor] serialize workflow and add phase-specific artifact naming
-    [refactor] separate cleanup workflow and test intermediate phases
-    [refactor] remove redundant configure-git-push step and consolidate git operations into composite actions
-    [refactor] use local tag cleanup in ACT workflow
-    [refactor] improve test-harness-act alignment with test-harness
-    [refactor] consolidate arranger setup into run-arranger composite action
-    [refactor] remove redundant changelog config
-    [refactor] clean up post-psr integration tests
-    [refactor] remove all kodi-addon-fixture directory references
-    [refactor] update test-harness workflow for flattened fixture structure
-    [refactor] remove temp_git_repo tests from integration tests
-    [refactor] flatten fixture structure, remove kodi-addon-fixture nesting
-    [refactor] integration tests now use real fixture repo files instead of synthetic temp repos
-    [refactor] extract inlined workflow commands into composite actions
-    
-    [test] upload rendered templates as artifacts using GitHub Action
-    [test] add news section to fixture addon.xml
-    [test] remove CHANGELOG.md to test init mode detection
-    [test] remove diagnostic git steps - revert to clean state
-    [test] add diagnostic git step to confirm git-remote-https issue in ACT
-    [test] reset fixture version to 0.0.1 for PSR template rendering tests
-    [test] set PSR_VALIDATE_REAL=0 in ACT workflow to skip real GitHub API checks
-    [test] update pre-PSR tests to check for templates in templates/ directory
-    
-    [ci] update test harnesses to use psr_prepare instead of arranger
-    
-    [chore] add .local-git-origin to gitignore
-    [chore] complete migration from detect-environment to github.event.act conditionals
-    [chore] add consolidated cleanup action and consolidated workflow
-    [chore] remove dead code - run-psr-locally composite action
-    [chore] remove obsolete files and create unified run-psr composite action (Phase 1 cleanup + PSR consolidation)
-    [chore] revert multi-type commit experiment, align with Conventional Commits spec
-    [chore] remove egg-info and update Makefile
-    [chore] local test harness changes from ci-simulate run
-    [chore] clean up artifact from previous test run
-    [chore] update gitignore and remove test-results/ from tracking
-    [chore] extract kodi and pre-cleanup steps into composite actions
-    [chore] remove unused composite actions
-    [chore] remove tracked __pycache__ files
-    [chore] add .gitignore with Python cache and build artifacts
-    [chore] add debug steps before and after PSR to inspect file states
+    <news>v0.1.1 (2026-02-20)
+    [fix] [PHASE-2] fix race condition in thread pool (ci-test-run)
+    [fix] [PHASE-2] resolve null pointer exception (ci-test-run)
     </news>
   </extension>
 </addon>

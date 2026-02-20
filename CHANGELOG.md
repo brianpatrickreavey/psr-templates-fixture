@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.1.1 (2026-02-20)
+
+### Bug Fixes
+
+
+- [PHASE-2] fix race condition in thread pool (ci-test-run)
+- [PHASE-2] resolve null pointer exception (ci-test-run)
+
 ## v0.1.0 (2026-02-20)
 
 ### Features
