@@ -43,12 +43,10 @@ ci-simulate:
 # Simulate CI with consolidated workflow
 ci-simulate-consolidated:
 	@timestamp=$$(date +%Y%m%d-%H%M%S); \
-	mkdir -p .artifacts/$$timestamp .local-git-origin; \
-	git init --bare .local-git-origin/fixture.git; \
+	mkdir -p .artifacts/$$timestamp; \
 	echo "Running consolidated CI simulation (artifacts: .artifacts/$$timestamp)"; \
 	act repository_dispatch \
 	  --artifact-server-path ".artifacts/$$timestamp" \
-	  --bind \
 	  -W .github/workflows/test-harness-consolidated.yml \
 	  -e .act/event.json \
 	  --container-architecture linux/amd64 \
