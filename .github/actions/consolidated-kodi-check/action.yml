@@ -24,6 +24,6 @@ runs:
       if: ${{ github.event.act }}
       shell: bash
       run: |
-        echo "is_kodi=false" >> $GITHUB_OUTPUT
-        echo "kodi_project_name=" >> $GITHUB_OUTPUT
-        echo "kodi_directory=" >> $GITHUB_OUTPUT
+        echo "is_kodi=true" >> $GITHUB_OUTPUT
+        echo "kodi_project_name=script.module.example" >> $GITHUB_OUTPUT
+        echo "kodi_directory=script.module.example" >> $GITHUB_OUTPUT
