@@ -39,7 +39,7 @@ runs:
         source /tmp/venv/bin/activate
         uv pip install python-semantic-release
       shell: bash
-    - name: Run PSR (ACT mode - local simulation, no push)
+    - name: Run PSR (ACT mode - local simulation, push tags but no VCS release)
       id: psr-act
       if: inputs.mode == 'act'
       run: |
@@ -48,5 +48,5 @@ runs:
         if [ -n "${{ inputs.force }}" ]; then
           force_arg="--${{ inputs.force }}"
         fi
-        python-semantic-release version $force_arg --changelog --commit --tag --no-push --no-vcs-release 2>&1 | tee psr-run.log
+        python-semantic-release version $force_arg --changelog --commit --tag --no-vcs-release 2>&1 | tee psr-run.log
       shell: bash
