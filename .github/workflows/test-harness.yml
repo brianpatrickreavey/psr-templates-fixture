@@ -11,10 +11,6 @@ concurrency:
   group: psr-test-harness-${{ github.repository }}
   cancel-in-progress: false
 
-env:
-  # GIT_URL selection: Use gitea in ACT mode (local testing), GitHub in production
-  GIT_URL: ${{ env.ACT && 'http://localhost:3000' || 'https://github.com' }}
-
 jobs:
   pre-release-tests:
     runs-on: ubuntu-latest
@@ -42,6 +38,20 @@ jobs:
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
+      - name: Detect ACT mode and set GIT_URL
+        run: |
+          # ACT sets the ACT environment variable; use it to detect local testing
+          if [ -n "$ACT" ]; then
+            echo "Git URL will use local gitea (ACT mode detected)"
+            echo "GIT_URL=http://localhost:3000" >> $GITHUB_ENV
+          else
+            echo "Git URL will use GitHub (production mode)"
+            echo "GIT_URL=https://github.com" >> $GITHUB_ENV
+          fi
+      - name: Initialize gitea repository (local testing only)
+        run: |
+          # Script checks $ACT internally and skips if not in ACT mode
+          bash ./tools/init-gitea.sh
       - name: Pre-cleanup tags, releases, and branches
         uses: ./.github/actions/cleanup-tags-releases
       - name: Install uv
@@ -80,6 +90,7 @@ jobs:
         with:
           phase: '1'
           branch: ci/${{ github.event.client_payload.run_id }}
+          git-url: ${{ env.GIT_URL }}
       - name: Run psr_prepare (Phase 1)
         run: |
           source /tmp/venv/bin/activate
@@ -90,6 +101,7 @@ jobs:
         with:
           mode: github
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          git-url: ${{ env.GIT_URL }}
       - name: Upload CHANGELOG to v0.1.0 release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -122,6 +134,7 @@ jobs:
         with:
           phase: '2'
           branch: ci/${{ github.event.client_payload.run_id }}
+          git-url: ${{ env.GIT_URL }}
       - name: Run psr_prepare (Phase 2)
         run: |
           source /tmp/venv/bin/activate
@@ -132,6 +145,7 @@ jobs:
         with:
           mode: github
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          git-url: ${{ env.GIT_URL }}
       - name: Upload CHANGELOG to v0.2.0 release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -164,6 +178,7 @@ jobs:
         with:
           phase: '3'
           branch: ci/${{ github.event.client_payload.run_id }}
+          git-url: ${{ env.GIT_URL }}
       - name: Run psr_prepare (Phase 3)
         run: |
           source /tmp/venv/bin/activate
@@ -175,6 +190,7 @@ jobs:
           mode: github
           github_token: ${{ secrets.GITHUB_TOKEN }}
           force: major
+          git-url: ${{ env.GIT_URL }}
       - name: Upload CHANGELOG to v1.0.0 release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -381,6 +397,7 @@ jobs:
         with:
           phase: '4'
           branch: ci/${{ github.event.client_payload.run_id }}
+          git-url: ${{ env.GIT_URL }}
       - name: Run psr_prepare (Phase 4)
         run: |
           source /tmp/venv/bin/activate
@@ -391,6 +408,7 @@ jobs:
         with:
           mode: github
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          git-url: ${{ env.GIT_URL }}
       - name: Upload CHANGELOG to v1.0.0 release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -423,6 +441,7 @@ jobs:
         with:
           phase: '5'
           branch: ci/${{ github.event.client_payload.run_id }}
+          git-url: ${{ env.GIT_URL }}
       - name: Run psr_prepare (Phase 5)
         run: |
           source /tmp/venv/bin/activate
@@ -433,6 +452,7 @@ jobs:
         with:
           mode: github
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          git-url: ${{ env.GIT_URL }}
       - name: Upload CHANGELOG to v1.0.1 release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

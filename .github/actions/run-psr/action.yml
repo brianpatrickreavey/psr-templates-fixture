@@ -12,6 +12,10 @@ inputs:
     description: 'GitHub token for authenticated releases (required for github mode)'
     required: false
     default: ''
+  git-url:
+    description: 'Base git URL for push operations (e.g., https://github.com or http://localhost:3000)'
+    required: false
+    default: ''
 outputs:
   tag:
     description: 'The generated tag'
@@ -39,11 +43,19 @@ runs:
         source /tmp/venv/bin/activate
         uv pip install python-semantic-release
       shell: bash
-    - name: Run PSR (ACT mode - local simulation)
+    - name: Run PSR (ACT mode - local simulation with gitea)
       id: psr-act
       if: inputs.mode == 'act'
+      env:
+        GIT_URL: ${{ inputs.git-url }}
       run: |
         source /tmp/venv/bin/activate
+        
+        # Configure git to use the correct remote URL
+        if [ -n "$GIT_URL" ]; then
+          git remote set-url origin "$GIT_URL/test-repo.git"
+        fi
+        
         force_arg=""
         if [ -n "${{ inputs.force }}" ]; then
           force_arg="--${{ inputs.force }}"
