@@ -1,0 +1,24 @@
+name: 'Setup Development Environment'
+description: 'Install uv, set up venv, and install dev dependencies'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install uv
+      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      shell: bash
+
+    - name: Set up venv
+      run: |
+        export PATH="$PATH:/root/.local/bin"
+        uv venv /tmp/venv
+        export UV_VENV=/tmp/venv
+      shell: bash
+
+    - name: Install dev dependencies
+      shell: bash
+      run: |
+        set -x
+        source /tmp/venv/bin/activate
+        uv pip install pytest
+        uv pip install git+https://github.com/brianpatrickreavey/psr-templates.git

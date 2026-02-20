@@ -53,12 +53,8 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - name: Install uv
-        uses: ./.github/actions/install-uv
-      - name: Set up venv
-        uses: ./.github/actions/setup-venv
-      - name: Install dev dependencies
-        uses: ./.github/actions/install-dev-dependencies
+      - name: Setup development environment
+        uses: ./.github/actions/setup-dev-environment
       - name: Generate and push phase 1 commits
         uses: ./.github/actions/generate-and-push-commits
         with:
@@ -99,12 +95,8 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0  # Full history to see v0.1.0
-      - name: Install uv
-        uses: ./.github/actions/install-uv
-      - name: Set up venv
-        uses: ./.github/actions/setup-venv
-      - name: Install dev dependencies
-        uses: ./.github/actions/install-dev-dependencies
+      - name: Setup development environment
+        uses: ./.github/actions/setup-dev-environment
       - name: Generate and push phase 2 commits
         uses: ./.github/actions/generate-and-push-commits
         with:
@@ -145,12 +137,8 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0  # Full history to see v0.1.0 and v0.2.0
-      - name: Install uv
-        uses: ./.github/actions/install-uv
-      - name: Set up venv
-        uses: ./.github/actions/setup-venv
-      - name: Install dev dependencies
-        uses: ./.github/actions/install-dev-dependencies
+      - name: Setup development environment
+        uses: ./.github/actions/setup-dev-environment
       - name: Generate and push phase 3 commits
         uses: ./.github/actions/generate-and-push-commits
         with:
@@ -366,12 +354,8 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - name: Install uv
-        uses: ./.github/actions/install-uv
-      - name: Set up venv
-        uses: ./.github/actions/setup-venv
-      - name: Install dev dependencies
-        uses: ./.github/actions/install-dev-dependencies
+      - name: Setup development environment
+        uses: ./.github/actions/setup-dev-environment
       - name: Generate and push phase 4 commits
         uses: ./.github/actions/generate-and-push-commits
         with:
@@ -412,12 +396,8 @@ jobs:
           repository: ${{ github.repository }}
           ref: ci/${{ github.event.client_payload.run_id }}
           fetch-depth: 0
-      - name: Install uv
-        uses: ./.github/actions/install-uv
-      - name: Set up venv
-        uses: ./.github/actions/setup-venv
-      - name: Install dev dependencies
-        uses: ./.github/actions/install-dev-dependencies
+      - name: Setup development environment
+        uses: ./.github/actions/setup-dev-environment
       - name: Generate and push phase 5 commits
         uses: ./.github/actions/generate-and-push-commits
         with:
