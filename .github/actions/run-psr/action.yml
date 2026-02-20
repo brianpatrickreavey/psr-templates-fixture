@@ -1,0 +1,52 @@
+name: 'Run PSR'
+description: 'Execute PSR with conditional behavior for GitHub vs ACT environments'
+inputs:
+  mode:
+    description: 'Execution mode: "github" for real releases, "act" for local simulation'
+    required: true
+  force:
+    description: 'Force version bump level (major, minor, patch, or leave empty for automatic)'
+    required: false
+    default: ''
+  github_token:
+    description: 'GitHub token for authenticated releases (required for github mode)'
+    required: false
+    default: ''
+outputs:
+  tag:
+    description: 'The generated tag'
+    value: ${{ steps.psr-github.outputs.tag || steps.psr-act.outputs.tag }}
+  version:
+    description: 'The generated version'
+    value: ${{ steps.psr-github.outputs.version || steps.psr-act.outputs.version }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Run PSR (GitHub mode - authenticated release)
+      id: psr-github
+      if: inputs.mode == 'github'
+      uses: python-semantic-release/python-semantic-release@v10.5.3
+      with:
+        github_token: ${{ inputs.github_token }}
+        commit: true
+        push: true
+        tag: true
+        vcs_release: true
+        force: ${{ inputs.force }}
+    - name: Install PSR (ACT mode)
+      if: inputs.mode == 'act'
+      run: |
+        source /tmp/venv/bin/activate
+        uv pip install python-semantic-release
+      shell: bash
+    - name: Run PSR (ACT mode - local simulation, no push)
+      id: psr-act
+      if: inputs.mode == 'act'
+      run: |
+        source /tmp/venv/bin/activate
+        force_arg=""
+        if [ -n "${{ inputs.force }}" ]; then
+          force_arg="--${{ inputs.force }}"
+        fi
+        python-semantic-release version $force_arg --changelog --commit --tag --no-push --no-vcs-release 2>&1 | tee psr-run.log
+      shell: bash
