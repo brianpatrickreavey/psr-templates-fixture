@@ -47,7 +47,6 @@ ci-simulate-consolidated:
 	echo "Running consolidated CI simulation (artifacts: .artifacts/$$timestamp)"; \
 	act repository_dispatch \
 	  --artifact-server-path ".artifacts/$$timestamp" \
-	  --reuse \
 	  -W .github/workflows/test-harness-consolidated.yml \
 	  -e .act/event.json \
 	  --container-architecture linux/amd64 \
