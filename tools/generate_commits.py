@@ -2,8 +2,29 @@
 """
 Generate deterministic test commits for PSR template testing.
 
-This script creates commits in phases to test version bumping behavior.
-All commits include " (ci-test-run)" marker for exclusion.
+Supports 5 phases of version progression to test semantic versioning behavior:
+
+  Phase 1: Features
+    - Commits: 2 feature commits
+    - Expected Version: 0.1.0 (minor bump)
+
+  Phase 2: Bug Fixes
+    - Commits: 2 fix commits
+    - Expected Version: 0.1.1 (patch bump)
+
+  Phase 3: Major Features
+    - Commits: 2 feature commits
+    - Expected Version: 1.0.0 (forced major bump)
+
+  Phase 4: Documentation
+    - Commits: 2 documentation commits
+    - Expected Version: 1.0.0 (no version change, docs only)
+
+  Phase 5: Bug Fixes (Post-Major)
+    - Commits: 2 fix commits
+    - Expected Version: 1.0.1 (patch bump)
+
+All commits include " (ci-test-run)" marker for changelog exclusion during testing.
 
 Usage:
   generate_commits.py [--phase 1-5] [--all] <fixture_repo_path>

@@ -65,6 +65,19 @@ jobs:
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
 
+  # ============================================================================
+  # RELEASE PHASES: 5-phase workflow testing version progression
+  # ============================================================================
+  # Phase 1: Feature commits → v0.1.0 (minor bump from 0.0.0)
+  # Phase 2: Fix commits → v0.1.1 (patch bump)
+  # Phase 3: Features + forced major → v1.0.0 (major bump with `force: major`)
+  # Phase 4: Documentation only → v1.0.0 (no version change, docs-only commits)
+  # Phase 5: Fix commits → v1.0.1 (patch bump post-major)
+  # ============================================================================
+  # Each phase: generate commits → psr_prepare → python-semantic-release
+  # Kodi addon build/publish steps run in parallel for each phase
+  # ============================================================================
+
   release-phase-1:
     needs: pre-release-tests
     runs-on: ubuntu-latest
