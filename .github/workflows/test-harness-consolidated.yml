@@ -92,6 +92,13 @@ jobs:
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
+      - name: Configure origin remote (ACT mode)
+        if: github.event.act
+        run: |
+          git remote remove origin
+          git remote add origin file:///local-git-origin/fixture.git
+          git fetch origin || true
+
       - name: Install uv
         uses: ./.github/actions/install-uv
 
@@ -161,6 +168,12 @@ jobs:
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
+      - name: Add local git remote (ACT mode)
+        if: github.event.act
+        run: |
+          git remote add local file:///local-git-origin/fixture.git
+          git fetch local || true
+
       - name: Install uv
         uses: ./.github/actions/install-uv
 
@@ -229,6 +242,13 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
+
+      - name: Configure origin remote (ACT mode)
+        if: github.event.act
+        run: |
+          git remote remove origin
+          git remote add origin file:///local-git-origin/fixture.git
+          git fetch origin || true
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -300,6 +320,13 @@ jobs:
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
+      - name: Configure origin remote (ACT mode)
+        if: github.event.act
+        run: |
+          git remote remove origin
+          git remote add origin file:///local-git-origin/fixture.git
+          git fetch origin || true
+
       - name: Install uv
         uses: ./.github/actions/install-uv
 
@@ -368,6 +395,13 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
+
+      - name: Configure origin remote (ACT mode)
+        if: github.event.act
+        run: |
+          git remote remove origin
+          git remote add origin file:///local-git-origin/fixture.git
+          git fetch origin || true
 
       - name: Install uv
         uses: ./.github/actions/install-uv

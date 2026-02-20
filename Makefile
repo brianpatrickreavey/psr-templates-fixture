@@ -43,13 +43,16 @@ ci-simulate:
 # Simulate CI with consolidated workflow
 ci-simulate-consolidated:
 	@timestamp=$$(date +%Y%m%d-%H%M%S); \
-	mkdir -p .artifacts/$$timestamp; \
+	mkdir -p .artifacts/$$timestamp .local-git-origin; \
+	git init --bare .local-git-origin/fixture.git; \
 	echo "Running consolidated CI simulation (artifacts: .artifacts/$$timestamp)"; \
 	act repository_dispatch \
 	  --artifact-server-path ".artifacts/$$timestamp" \
+	  --volume $$(pwd)/.local-git-origin:/local-git-origin \
 	  -W .github/workflows/test-harness-consolidated.yml \
 	  -e .act/event.json \
 	  --container-architecture linux/amd64 \
+	  --env ACT_RUN_ID="act-test-run-$$timestamp" \
 	  | tee .artifacts/$$timestamp/ci-simulate-consolidated.log; \
 	echo "Artifacts stored in .artifacts/$$timestamp"; \
 	echo "Log file: .artifacts/$$timestamp/ci-simulate-consolidated.log"

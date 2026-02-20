@@ -39,7 +39,7 @@ runs:
         source /tmp/venv/bin/activate
         uv pip install python-semantic-release
       shell: bash
-    - name: Run PSR (ACT mode - local simulation, push tags but no VCS release)
+    - name: Run PSR (ACT mode - local simulation)
       id: psr-act
       if: inputs.mode == 'act'
       run: |
