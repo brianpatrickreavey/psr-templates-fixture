@@ -21,11 +21,12 @@ All attributes available in `ctx`:
 
 ### ctx.history.released - All Releases
 
-**Total count:** 2
+**Total count:** 3
 
 **All versions available:**
   - `0.1.0`
   - `0.1.1`
+  - `1.0.0`
 
 ## Individual Release Structure
 
@@ -1365,8 +1366,8 @@ Element types available: features, unknown, chores, bug fixes, refactoring, docu
 ### Release: v0.1.1
 
 #### Direct Attributes
-- **committer**: github-actions[bot]
-- **tagged_date**: 2026-02-20 19:42:26.697803+00:00
+- **committer**: root
+- **tagged_date**: 2026-02-20 19:42:26+00:00
 - **tagger**: github-actions[bot]
 - **version**: 0.1.1
 
@@ -1388,13 +1389,39 @@ Element types available: bug fixes
 - **breaking_descriptions**:
   - (none)
 
+### Release: v1.0.0
+
+#### Direct Attributes
+- **committer**: github-actions[bot]
+- **tagged_date**: 2026-02-20 19:42:41.731341+00:00
+- **tagger**: github-actions[bot]
+- **version**: 1.0.0
+
+#### Elements Structure
+
+Element types available: features
+
+##### FEATURES Elements (2 total)
+
+**FEATURES #1:**
+- **descriptions**:
+  - `[PHASE-3] restructure database schema (ci-test-run)`
+- **breaking_descriptions**:
+  - (none)
+
+**FEATURES #2:**
+- **descriptions**:
+  - `[PHASE-3] redesign API endpoints (ci-test-run)`
+- **breaking_descriptions**:
+  - (none)
+
 ## String Filtering & Text Processing
 
 Jinja2 allows calling Python methods and filters directly on strings:
 
 ### Date Formatting Example
 
-Release `v0.1.1` on: `2026-02-20`
+Release `v1.0.0` on: `2026-02-20`
 Full format: `February 20, 2026 at 19:42`
 
 ### String Operations
@@ -1415,10 +1442,10 @@ Common Jinja2 filters for collections:
 
 - **first**: Get first item
 - **last**: Get last item
-- **length**: `2` releases available
+- **length**: `3` releases available
 - **sort()**: Sort by attribute like `sort(attribute='version')`
 - **select()**, **reject()**: Filter items by test condition
-- **map()**: Extract attributes: `[Version(major=0, minor=1, patch=0, prerelease_token='rc', prerelease_revision=None, build_metadata='', tag_format='v{version}'), Version(major=0, minor=1, patch=1, prerelease_token='rc', prerelease_revision=None, build_metadata='', tag_format='v{version}')]`
+- **map()**: Extract attributes: `[Version(major=0, minor=1, patch=0, prerelease_token='rc', prerelease_revision=None, build_metadata='', tag_format='v{version}'), Version(major=0, minor=1, patch=1, prerelease_token='rc', prerelease_revision=None, build_metadata='', tag_format='v{version}'), Version(major=1, minor=0, patch=0, prerelease_token='rc', prerelease_revision=None, build_metadata='', tag_format='v{version}')]`
 - **sum()**: Sum numeric values
 - **min()**, **max()**: Find extremes
 
@@ -1426,12 +1453,12 @@ Common Jinja2 filters for collections:
 
 Working with release data structures:
 
-**Latest Release (v0.1.1):**
-- Element types: `bug fixes`
+**Latest Release (v1.0.0):**
+- Element types: `features`
 - Total commits:
 2
 - Breakdown by type:
-  - bug fixes: 2
+  - features: 2
 
 ## PSR-Specific Filters (When Using Full PSR)
 
