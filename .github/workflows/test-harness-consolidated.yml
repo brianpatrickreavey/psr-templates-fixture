@@ -11,6 +11,9 @@ concurrency:
   group: psr-test-harness-${{ github.repository }}
   cancel-in-progress: false
 
+env:
+  TEST_BRANCH: ci/${{ github.event.act && 'act' || 'gha' }}-${{ github.event.client_payload.run_id }}
+
 jobs:
   pre-release-tests:
     runs-on: ubuntu-latest
@@ -68,7 +71,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
+          ref: ${{ env.TEST_BRANCH }}
           fetch-depth: 0
 
       - name: Install uv
@@ -84,7 +87,7 @@ jobs:
         uses: ./.github/actions/generate-and-push-commits
         with:
           phase: '1'
-          branch: ci/${{ github.event.client_payload.run_id }}
+          branch: ${{ env.TEST_BRANCH }}
 
       - name: Run psr_prepare (Phase 1)
         run: |
@@ -137,7 +140,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
+          ref: ${{ env.TEST_BRANCH }}
           fetch-depth: 0
 
       - name: Install uv
@@ -153,7 +156,7 @@ jobs:
         uses: ./.github/actions/generate-and-push-commits
         with:
           phase: '2'
-          branch: ci/${{ github.event.client_payload.run_id }}
+          branch: ${{ env.TEST_BRANCH }}
 
       - name: Run psr_prepare (Phase 2)
         run: |
@@ -206,7 +209,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
+          ref: ${{ env.TEST_BRANCH }}
           fetch-depth: 0
 
       - name: Install uv
@@ -222,7 +225,7 @@ jobs:
         uses: ./.github/actions/generate-and-push-commits
         with:
           phase: '3'
-          branch: ci/${{ github.event.client_payload.run_id }}
+          branch: ${{ env.TEST_BRANCH }}
 
       - name: Run psr_prepare (Phase 3)
         run: |
@@ -276,7 +279,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
+          ref: ${{ env.TEST_BRANCH }}
           fetch-depth: 0
 
       - name: Install uv
@@ -292,7 +295,7 @@ jobs:
         uses: ./.github/actions/generate-and-push-commits
         with:
           phase: '4'
-          branch: ci/${{ github.event.client_payload.run_id }}
+          branch: ${{ env.TEST_BRANCH }}
 
       - name: Run psr_prepare (Phase 4)
         run: |
@@ -345,7 +348,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: ci/${{ github.event.client_payload.run_id }}
+          ref: ${{ env.TEST_BRANCH }}
           fetch-depth: 0
 
       - name: Install uv
@@ -361,7 +364,7 @@ jobs:
         uses: ./.github/actions/generate-and-push-commits
         with:
           phase: '5'
-          branch: ci/${{ github.event.client_payload.run_id }}
+          branch: ${{ env.TEST_BRANCH }}
 
       - name: Run psr_prepare (Phase 5)
         run: |
@@ -426,7 +429,7 @@ jobs:
         uses: ./.github/actions/install-dev-dependencies
 
       - name: Switch to test branch
-        run: git checkout ci/${{ github.event.client_payload.run_id }} 2>/dev/null || true
+        run: git checkout ${{ env.TEST_BRANCH }} 2>/dev/null || true
 
       - name: Run post-PSR tests
         uses: ./.github/actions/run-post-psr-tests
@@ -435,7 +438,7 @@ jobs:
         if: always()
         run: |
           git checkout main || true
-          git branch -D ci/${{ github.event.client_payload.run_id }} 2>/dev/null || true
+          git branch -D ${{ env.TEST_BRANCH }} 2>/dev/null || true
 
       - name: Final cleanup local tags
         if: always()

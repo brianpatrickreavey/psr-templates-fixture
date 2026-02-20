@@ -107,12 +107,12 @@ def main():
         print(f"Repo path {repo_path} does not exist")
         sys.exit(1)
 
-    # Safety check: only run on CI test branches
-    current_branch = run_git('rev-parse', '--abbrev-ref', 'HEAD', cwd=repo_path)
-    if not current_branch.startswith('ci/'):
-        print(f"ERROR: Refusing to generate commits on branch '{current_branch}'")
-        print("This script only runs on branches matching 'ci/*' pattern")
-        sys.exit(1)
+# Safety check: only run on CI test branches
+  current_branch = run_git('rev-parse', '--abbrev-ref', 'HEAD', cwd=repo_path)
+  if not current_branch.startswith('ci/'):
+    print(f"ERROR: Refusing to generate commits on branch '{current_branch}'")
+    print("This script only runs on branches matching 'ci/*' pattern (ci/gha-* or ci/act-*)")
+    sys.exit(1)
 
     # Configure git for commits
     run_git('config', 'user.name', 'PSR Test Harness', cwd=repo_path)
