@@ -212,13 +212,13 @@ jobs:
         uses: ./.github/actions/run-post-psr-tests
       - name: Debug - List tags and recent commits before cleanup
         run: |
-          echo "=== Git tags ===" 
+          echo "=== Git tags ==="
           git tag -l
           echo ""
-          echo "=== Recent 20 commits ===" 
+          echo "=== Recent 20 commits ==="
           git --no-pager log --oneline -20
           echo ""
-          echo "=== Current branch ===" 
+          echo "=== Current branch ==="
           git branch -v
         continue-on-error: true
       - name: Clean up test branch

@@ -3,7 +3,7 @@
 
 def hello_world():
     """Print hello world message.
-    
+
     Returns:
         str: A greeting message
     """
@@ -12,10 +12,10 @@ def hello_world():
 
 def greet(name):
     """Generate a personalized greeting.
-    
+
     Args:
         name (str): Name to greet
-        
+
     Returns:
         str: Personalized greeting message
     """
