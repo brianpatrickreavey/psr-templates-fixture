@@ -25,3 +25,11 @@ runs:
         kodi_directory: ${{ inputs.kodi_directory }}
         version: ${{ inputs.version }}
         phase: ${{ inputs.phase }}
+    - name: Upload rendered templates
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: rendered-templates-${{ inputs.phase }}
+        path: |
+          CHANGELOG.md
+          ${{ inputs.kodi_directory }}/addon.xml

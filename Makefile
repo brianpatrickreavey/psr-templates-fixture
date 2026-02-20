@@ -28,26 +28,32 @@ unzip-artifacts:
 # Simulate CI with act
 ci-simulate:
 	@timestamp=$$(date +%Y%m%d-%H%M%S); \
+	mkdir -p .artifacts/$$timestamp; \
 	echo "Running CI simulation (artifacts: .artifacts/$$timestamp)"; \
 	act repository_dispatch \
 	  --artifact-server-path ".artifacts/$$timestamp" \
 	  -W .github/workflows/test-harness-act.yml \
 	  -e .act/event.json \
 	  --container-architecture linux/amd64 \
-	  --env GITHUB_RUN_ID="$$timestamp"; \
-	echo "Artifacts stored in .artifacts/$$timestamp"
+	  --env GITHUB_RUN_ID="$$timestamp" \
+	  | tee .artifacts/$$timestamp/ci-simulate.log; \
+	echo "Artifacts stored in .artifacts/$$timestamp"; \
+	echo "Log file: .artifacts/$$timestamp/ci-simulate.log"
 
 # Simulate CI with consolidated workflow
 ci-simulate-consolidated:
 	@timestamp=$$(date +%Y%m%d-%H%M%S); \
+	mkdir -p .artifacts/$$timestamp; \
 	echo "Running consolidated CI simulation (artifacts: .artifacts/$$timestamp)"; \
 	act repository_dispatch \
 	  --artifact-server-path ".artifacts/$$timestamp" \
 	  -W .github/workflows/test-harness-consolidated.yml \
 	  -e .act/event.json \
 	  --container-architecture linux/amd64 \
-	  --env GITHUB_RUN_ID="$$timestamp"; \
-	echo "Artifacts stored in .artifacts/$$timestamp"
+	  --env GITHUB_RUN_ID="$$timestamp" \
+	  | tee .artifacts/$$timestamp/ci-simulate-consolidated.log; \
+	echo "Artifacts stored in .artifacts/$$timestamp"; \
+	echo "Log file: .artifacts/$$timestamp/ci-simulate-consolidated.log"
 
 # Clean up all tags in the fixture repo
 clean-tags:
