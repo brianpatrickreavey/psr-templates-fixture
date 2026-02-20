@@ -1,5 +1,6 @@
 name: Consolidated Cleanup Tags and Releases
 description: Clean up git tags and releases, with mode-specific behavior for GitHub vs ACT
+
 runs:
   using: composite
   steps:
@@ -7,47 +8,6 @@ runs:
       if: ${{ !github.event.act }}
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
       run: |
         gh api repos/${{ github.repository }}/releases --jq '.[].id' | xargs -I {} gh api repos/${{ github.repository }}/releases/{} -X DELETE || true
-
-    - name: Delete all tags (GitHub mode)
-      if: ${{ !github.event.act }}
-      shell: bash
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh api repos/${{ github.repository }}/git/refs/tags --jq '.[].ref' | sed 's|refs/tags/||' | xargs -I {} gh api repos/${{ github.repository }}/git/refs/tags/{} -X DELETE || true
-
-    - name: Delete remote ci/* branches (GitHub mode)
-      if: ${{ !github.event.act }}
-      shell: bash
-      run: |
-        git branch -r | grep 'origin/ci/' | sed 's|origin/||' | xargs -I {} git push origin --delete {} || true
-
-    - name: Delete local tags (ACT mode)
-      if: ${{ github.event.act }}
-      shell: bash
-      run: |
-        TAGS=$(git tag -l)
-        git push origin --delete $TAGS 2>/dev/null || true
-        git tag -d $TAGS 2>/dev/null || true
-
-    - name: Delete local ci/* branches
-      shell: bash
-      run: git branch -D $(git branch | grep 'ci/') || true
-
-    - name: Verify cleanup (GitHub mode)
-      if: ${{ !github.event.act }}
-      shell: bash
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        RELEASE_COUNT=$(gh api repos/${{ github.repository }}/releases --jq 'length' 2>/dev/null || echo 0)
-        TAG_COUNT=$(gh api repos/${{ github.repository }}/git/refs/tags --jq 'length' 2>/dev/null || echo 0)
-        BRANCH_COUNT=$(git branch -r | grep -c 'origin/ci/' || echo 0)
-        if [ "$RELEASE_COUNT" -gt 0 ] || [ "$TAG_COUNT" -gt 0 ] || [ "$BRANCH_COUNT" -gt 0 ]; then
-          echo "Cleanup failed: $RELEASE_COUNT releases, $TAG_COUNT tags, $BRANCH_COUNT ci/* branches remain."
-          exit 1
-        fi
-        echo "Cleanup verified."
