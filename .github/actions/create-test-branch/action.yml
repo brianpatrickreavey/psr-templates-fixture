@@ -1,5 +1,9 @@
 name: 'Create test branch'
 description: 'Create a test branch for CI'
+inputs:
+  test_branch:
+    description: 'The test branch name (e.g., ci/act-... or ci/gha-...)'
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -7,7 +11,7 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ github.token }}
-        TEST_BRANCH: ci/${{ github.event.act && 'act' || 'gha' }}-${{ github.event.client_payload.run_id }}
+        TEST_BRANCH: ${{ inputs.test_branch }}
       run: |
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"

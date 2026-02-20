@@ -50,7 +50,6 @@ ci-simulate-consolidated:
 	  -W .github/workflows/test-harness-consolidated.yml \
 	  -e .act/event.json \
 	  --container-architecture linux/amd64 \
-	  --env GITHUB_RUN_ID="$$timestamp" \
 	  | tee .artifacts/$$timestamp/ci-simulate-consolidated.log; \
 	echo "Artifacts stored in .artifacts/$$timestamp"; \
 	echo "Log file: .artifacts/$$timestamp/ci-simulate-consolidated.log"

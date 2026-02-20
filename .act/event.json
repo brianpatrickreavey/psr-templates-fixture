@@ -2,7 +2,7 @@
   "act": true,
   "event_type": "test-harness-run",
   "client_payload": {
-    "run_id": "local-test-123",
+    "run_id": "act-test-run-default",
     "templates_repo": "brianpatrickreavey/psr-templates",
     "templates_ref": "main"
   }
