@@ -1,6 +1,5 @@
 name: Consolidated Cleanup Tags and Releases
 description: Clean up git tags and releases, with mode-specific behavior for GitHub vs ACT
-
 runs:
   using: composite
   steps:
