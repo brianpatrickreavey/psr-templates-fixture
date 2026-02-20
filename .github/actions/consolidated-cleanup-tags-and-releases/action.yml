@@ -29,7 +29,10 @@ runs:
     - name: Delete local tags (ACT mode)
       if: ${{ github.event.act }}
       shell: bash
-      run: git tag -d $(git tag) 2>/dev/null || true
+      run: |
+        TAGS=$(git tag -l)
+        git push origin --delete $TAGS 2>/dev/null || true
+        git tag -d $TAGS 2>/dev/null || true
 
     - name: Delete local ci/* branches
       shell: bash
