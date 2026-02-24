@@ -37,6 +37,7 @@ jobs:
         working-directory: ${{ github.workspace }}
     outputs:
       test_branch: ${{ steps.compute-branch.outputs.test_branch }}
+      gitea_url: ${{ steps.gitea-url.outputs.gitea_url }}
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
@@ -53,6 +54,16 @@ jobs:
             TEST_BRANCH="ci/${{ github.event.client_payload.run_id }}"
           fi
           echo "test_branch=${TEST_BRANCH}" >> $GITHUB_OUTPUT
+
+      - name: Compute gitea URL (ACT mode)
+        id: gitea-url
+        run: |
+          if [ "${{ github.event.act }}" = "true" ]; then
+            GITEA_URL="http://localhost:3000"
+          else
+            GITEA_URL="https://github.com/${{ github.repository_owner }}"
+          fi
+          echo "gitea_url=${GITEA_URL}" >> $GITHUB_OUTPUT
 
       - name: Initialize gitea repository (ACT mode only)
         if: github.event.act
@@ -130,6 +141,7 @@ jobs:
         with:
           phase: '1'
           branch: ${{ needs.setup.outputs.test_branch }}
+          git-url: ${{ needs.setup.outputs.gitea_url }}
 
       - name: Run psr_prepare (Phase 1)
         run: |
@@ -185,11 +197,10 @@ jobs:
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
-      - name: Add local git remote (ACT mode)
+      - name: Add gitea remote (ACT mode)
         if: github.event.act
         run: |
-          git remote add local file:///local-git-origin/fixture.git
-          git fetch local || true
+          git remote set-url origin ${{ needs.setup.outputs.gitea_url }}/test-repo.git || true
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -205,6 +216,7 @@ jobs:
         with:
           phase: '2'
           branch: ${{ needs.setup.outputs.test_branch }}
+          git-url: ${{ needs.setup.outputs.gitea_url }}
 
       - name: Run psr_prepare (Phase 2)
         run: |
@@ -274,6 +286,7 @@ jobs:
         with:
           phase: '3'
           branch: ${{ needs.setup.outputs.test_branch }}
+          git-url: ${{ needs.setup.outputs.gitea_url }}
 
       - name: Run psr_prepare (Phase 3)
         run: |
@@ -344,6 +357,7 @@ jobs:
         with:
           phase: '4'
           branch: ${{ needs.setup.outputs.test_branch }}
+          git-url: ${{ needs.setup.outputs.gitea_url }}
 
       - name: Run psr_prepare (Phase 4)
         run: |
@@ -413,6 +427,7 @@ jobs:
         with:
           phase: '5'
           branch: ${{ needs.setup.outputs.test_branch }}
+          git-url: ${{ needs.setup.outputs.gitea_url }}
 
       - name: Run psr_prepare (Phase 5)
         run: |

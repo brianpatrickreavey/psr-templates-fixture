@@ -73,19 +73,21 @@ populate_repo() {
     # Get the fixture repo root (one level up from where this script is)
     FIXTURE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     
-    # Copy files, excluding git and common unneeded directories
-    rsync -av \
-        --exclude='.git' \
-        --exclude='.github' \
-        --exclude='.gitignore' \
-        --exclude='__pycache__' \
-        --exclude='.pytest_cache' \
-        --exclude='.actrc' \
-        --exclude='ACT-GITEA-PLAN.md' \
-        --exclude='node_modules' \
-        --exclude='.venv' \
-        --exclude='venv' \
-        "${FIXTURE_ROOT}/" "${TEST_MOUNT}/" || true
+    # Use find and cp to copy files, excluding certain directories
+    # First, copy all files except excluded ones
+    cd "${FIXTURE_ROOT}"
+    find . -type f \
+        ! -path './.git/*' \
+        ! -path './.github/*' \
+        ! -path './.*' \
+        ! -path './__pycache__/*' \
+        ! -path './.pytest_cache/*' \
+        ! -path './node_modules/*' \
+        ! -path './.venv/*' \
+        ! -path './venv/*' \
+        ! -name '*.pyc' \
+        ! -name 'ACT-GITEA-PLAN.md' \
+        -exec bash -c 'mkdir -p "'"${TEST_MOUNT}"'/$(dirname {})" && cp "{}" "'"${TEST_MOUNT}"'/{}"' \;
     
     # Configure git in the work directory
     cd "${TEST_MOUNT}"
