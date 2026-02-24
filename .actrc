@@ -1,9 +1,10 @@
 # Act Configuration for Local Workflow Testing
-# This file configures the `act` tool to run GitHub Actions locally with gitea service support
+# This file configures the `act` tool to run GitHub Actions locally
 # Format: One flag per line, no special quoting
 
-# Use full Ubuntu image with Docker capabilities (required for gitea service container)
--P ubuntu-latest=ghcr.io/catthehacker/ubuntu:full-latest
+# Use default Ubuntu image (lightweight; gitea runs as sibling service, not DinD)
+# Jobs connect to gitea service via Docker network at http://gitea:3000
+-P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-latest
 
 # Set working directory (default is current directory)
 # -C /path/to/repo
