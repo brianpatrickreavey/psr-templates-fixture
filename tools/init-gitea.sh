@@ -55,21 +55,32 @@ init_repo() {
     
     # Copy fixture files
     echo -e "${YELLOW}[Gitea Init] Copying psr-templates-fixture files...${NC}"
-    # Use current working directory (should be the fixture root when called from workflow)
-    FIXTURE_ROOT="$(pwd)"
+    # Look for fixture files in parent directory (since we're in /tmp/test-repo-work after git init)
+    # The workflow calls this from the fixture root, so check common paths
+    FIXTURE_ROOT=""
+    for path in .. /home/bpreavey/Code/psr-templates-fixture $(pwd); do
+        if [ -f "${path}/Makefile" ] && [ -f "${path}/pyproject.toml" ]; then
+            FIXTURE_ROOT="${path}"
+            break
+        fi
+    done
     
-    # If we're in the tools directory, go back to fixture root
-    if [ -f "./init-gitea.sh" ]; then
-        FIXTURE_ROOT="$(cd .. && pwd)"
+    if [ -z "${FIXTURE_ROOT}" ]; then
+        echo -e "${YELLOW}[Gitea Init] Warning: Could not locate fixture root, copying will be skipped${NC}"
+    else
+        echo -e "${YELLOW}[Gitea Init] Using fixture root: ${FIXTURE_ROOT}${NC}"
+        find "${FIXTURE_ROOT}" \
+            -maxdepth 2 \
+            ! -path '*/.git/*' \
+            ! -path '*/.github/*' \
+            ! -path '*/.*' \
+            ! -path '*/__pycache__/*' \
+            ! -path '*/.pytest_cache/*' \
+            ! -path '*/node_modules/*' \
+            ! -name '*.pyc' \
+            -type f \
+            -exec bash -c 'mkdir -p "'"${WORK_DIR}"'/$(dirname {})" && cp "{}" "'"${WORK_DIR}"'/{}"' \;
     fi
-        ! -path '*/.git/*' \
-        ! -path '*/.github/*' \
-        ! -path '*/.*' \
-        ! -path '*/__pycache__/*' \
-        ! -path '*/.pytest_cache/*' \
-        ! -path '*/node_modules/*' \
-        ! -name '*.pyc' \
-        -exec bash -c 'mkdir -p "'"${WORK_DIR}"'/$(dirname {})" && cp "{}" "'"${WORK_DIR}"'/{}"' \;
     
     # Create initial commit
     echo -e "${YELLOW}[Gitea Init] Creating initial commit...${NC}"
