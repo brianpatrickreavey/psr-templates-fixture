@@ -7,7 +7,8 @@ set -e
 
 GITEA_URL="http://localhost:3000"
 REPO_NAME="test-repo"
-REPO_FULL_URL="${GITEA_URL}/${REPO_NAME}.git"
+# Use file:// protocol for local pushes (works from workflow container)
+REPO_FULL_URL="file:///data/git/repositories/${REPO_NAME}.git"
 WORK_DIR="/tmp/test-repo-work"
 
 # Colors for output
@@ -96,16 +97,33 @@ init_repo() {
         echo -e "${GREEN}[Gitea Init] Empty initial commit created${NC}"
     fi
     
+    # Create bare repository in Gitea's repository root directory
+    echo -e "${YELLOW}[Gitea Init] Creating bare repository in Gitea container...${NC}"
+    local gitea_container=${GITEA_CONTAINER:-"act-gitea-local"}
+    local gitea_repo_path="/data/git/repositories/${REPO_NAME}.git"
+    
+    if docker exec "${gitea_container}" mkdir -p "$(dirname "${gitea_repo_path}")" && \
+       docker exec "${gitea_container}" git init --bare "${gitea_repo_path}" 2>&1 | grep -q "Initialized"; then
+        echo -e "${GREEN}[Gitea Init] Bare repository created at ${gitea_repo_path}${NC}"
+    else
+        echo -e "${RED}[Gitea Init] ERROR: Failed to create bare repository${NC}"
+        return 1
+    fi
+    
     # Push to Gitea
     echo -e "${YELLOW}[Gitea Init] Pushing to remote: ${REPO_FULL_URL}${NC}"
     
-    # The first push to Gitea may create the repo
-    if ! git push -u origin main 2>&1; then
+    # Push to main; if that fails (branch name/ref issue), try master
+    if git push -u origin main 2>&1; then
+        echo -e "${GREEN}[Gitea Init] Successfully pushed to main${NC}"
+    else
         echo -e "${YELLOW}[Gitea Init] main branch push failed, trying master...${NC}"
-        git push -u origin master 2>&1 || {
-            echo -e "${RED}[Gitea Init] ERROR: Failed to push to Gitea${NC}"
+        if git push -u origin master 2>&1; then
+            echo -e "${GREEN}[Gitea Init] Successfully pushed to master${NC}"
+        else
+            echo -e "${RED}[Gitea Init] ERROR: Failed to push to both main and master${NC}"
             return 1
-        }
+        fi
     fi
     
     cd - > /dev/null

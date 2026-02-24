@@ -62,13 +62,17 @@ ci-simulate-consolidated:
 
 # Start local Gitea server
 start-gitea:
-	@echo "Starting Gitea on port $(GITEA_PORT)..." && \
+	@echo "Cleaning up any existing Gitea container..." && \
+	docker rm -f $(GITEA_CONTAINER) 2>/dev/null || true; \
+	echo "Preparing Gitea data directory..." && \
+	mkdir -p /tmp/gitea-data/conf && \
+	bash ./tools/gitea-config-gen.sh /tmp/gitea-data/conf/app.ini && \
+	echo "Starting Gitea on port $(GITEA_PORT)..." && \
 	docker run -d \
 		--name $(GITEA_CONTAINER) \
 		-p $(GITEA_PORT):3000 \
 		-p 2222:22 \
-		-e GITEA_ROOT_URL=http://localhost:$(GITEA_PORT) \
-		-e GITEA_DEFAULT_THEME=auto \
+		-v /tmp/gitea-data:/data \
 		$(GITEA_IMAGE) && \
 	echo "Waiting for Gitea to be healthy..." && \
 	max_attempts=30; \
@@ -85,7 +89,10 @@ start-gitea:
 		fi; \
 		sleep 1; \
 		attempt=$$((attempt + 1)); \
-	done
+	done && \
+	echo "Creating install.lock to skip wizard..." && \
+	docker exec $(GITEA_CONTAINER) touch /data/gitea/conf/install.lock && \
+	echo "✓ Gitea installation locked"
 
 # Stop local Gitea server
 stop-gitea:
