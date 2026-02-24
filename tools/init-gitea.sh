@@ -1,16 +1,14 @@
 #!/bin/bash
-# Initialize gitea repository with psr-templates-fixture files for ACT local testing
-# This script runs only in ACT mode and sets up a test repo for the workflow phases
+# Initialize Gitea repository with psr-templates-fixture files for ACT local testing
+# This script runs only in ACT mode and assumes Gitea is already running via Docker
+# Started by: make start-gitea
 
 set -e
 
-# Configuration
-GITEA_HOST="${GITEA_HOST:-localhost}"
-GITEA_PORT="${GITEA_PORT:-3000}"
-GITEA_URL="http://${GITEA_HOST}:${GITEA_PORT}"
+GITEA_URL="http://localhost:3000"
 REPO_NAME="test-repo"
-REPO_PATH="/tmp/gitea-repos/${REPO_NAME}.git"
-TEST_MOUNT="/tmp/test-repo-work"
+REPO_FULL_URL="${GITEA_URL}/${REPO_NAME}.git"
+WORK_DIR="/tmp/test-repo-work"
 
 # Colors for output
 RED='\033[0;31m'
@@ -18,14 +16,14 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}[Gitea Init] Starting gitea repository initialization${NC}"
+echo -e "${YELLOW}[Gitea Init] Starting repository initialization...${NC}"
 
-# Function to wait for gitea to be healthy
+# Wait for gitea to be healthy
 wait_for_gitea() {
     local timeout=30
     local elapsed=0
     
-    echo -e "${YELLOW}[Gitea Init] Waiting for gitea to be ready...${NC}"
+    echo -e "${YELLOW}[Gitea Init] Waiting for Gitea at ${GITEA_URL}...${NC}"
     
     while [ $elapsed -lt $timeout ]; do
         if curl -s "${GITEA_URL}" > /dev/null 2>&1; then
@@ -36,91 +34,71 @@ wait_for_gitea() {
         elapsed=$((elapsed + 1))
     done
     
-    echo -e "${RED}[Gitea Init] Timeout waiting for gitea after ${timeout}s${NC}"
+    echo -e "${RED}[Gitea Init] ERROR: Timeout waiting for Gitea after ${timeout}s${NC}"
     return 1
 }
 
-# Function to create bare repository
-create_bare_repo() {
-    echo -e "${YELLOW}[Gitea Init] Creating bare repository at ${REPO_PATH}${NC}"
+# Initialize repository
+init_repo() {
+    echo -e "${YELLOW}[Gitea Init] Initializing repository...${NC}"
     
-    # Ensure directory exists
-    mkdir -p "$(dirname "${REPO_PATH}")"
+    # Clean work directory
+    rm -rf "${WORK_DIR}"
+    mkdir -p "${WORK_DIR}"
+    cd "${WORK_DIR}"
     
-    # Initialize bare repo if it doesn't exist
-    if [ ! -d "${REPO_PATH}" ]; then
-        git init --bare "${REPO_PATH}"
-        echo -e "${GREEN}[Gitea Init] Bare repository created${NC}"
-    else
-        echo -e "${YELLOW}[Gitea Init] Bare repository already exists, skipping creation${NC}"
-    fi
-}
-
-# Function to populate repo with initial content
-populate_repo() {
-    echo -e "${YELLOW}[Gitea Init] Populating repository with psr-templates-fixture files${NC}"
-    
-    # Clean up any previous work directory
-    rm -rf "${TEST_MOUNT}"
-    mkdir -p "${TEST_MOUNT}"
-    
-    # Clone the bare repo to a working directory
-    git clone "${REPO_PATH}" "${TEST_MOUNT}"
-    
-    # Copy psr-templates-fixture files (exclude .git and node_modules)
-    echo -e "${YELLOW}[Gitea Init] Copying psr-templates-fixture files...${NC}"
-    
-    # Get the fixture repo root (one level up from where this script is)
-    FIXTURE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-    
-    # Use find and cp to copy files, excluding certain directories
-    # First, copy all files except excluded ones
-    cd "${FIXTURE_ROOT}"
-    find . -type f \
-        ! -path './.git/*' \
-        ! -path './.github/*' \
-        ! -path './.*' \
-        ! -path './__pycache__/*' \
-        ! -path './.pytest_cache/*' \
-        ! -path './node_modules/*' \
-        ! -path './.venv/*' \
-        ! -path './venv/*' \
-        ! -name '*.pyc' \
-        ! -name 'ACT-GITEA-PLAN.md' \
-        -exec bash -c 'mkdir -p "'"${TEST_MOUNT}"'/$(dirname {})" && cp "{}" "'"${TEST_MOUNT}"'/{}"' \;
-    
-    # Configure git in the work directory
-    cd "${TEST_MOUNT}"
+    # Initialize git repo
+    git init
     git config user.name "GitHub Actions"
     git config user.email "actions@github.com"
+    git remote add origin "${REPO_FULL_URL}"
     
-    # Create initial commit if there are changes
+    # Copy fixture files
+    echo -e "${YELLOW}[Gitea Init] Copying psr-templates-fixture files...${NC}"
+    FIXTURE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    
+    find "${FIXTURE_ROOT}" -type f \
+        ! -path '*/.git/*' \
+        ! -path '*/.github/*' \
+        ! -path '*/.*' \
+        ! -path '*/__pycache__/*' \
+        ! -path '*/.pytest_cache/*' \
+        ! -path '*/node_modules/*' \
+        ! -name '*.pyc' \
+        -exec bash -c 'mkdir -p "'"${WORK_DIR}"'/$(dirname {})" && cp "{}" "'"${WORK_DIR}"'/{}"' \;
+    
+    # Create initial commit
+    echo -e "${YELLOW}[Gitea Init] Creating initial commit...${NC}"
+    git add -A
+    
     if [ -n "$(git status --porcelain)" ]; then
-        git add -A
         git commit -m "Initial commit for ACT testing"
         echo -e "${GREEN}[Gitea Init] Initial commit created${NC}"
     else
         echo -e "${YELLOW}[Gitea Init] No changes to commit${NC}"
     fi
     
-    # Push to bare repo
-    git push origin main || git push origin master || true
+    # Push to Gitea
+    echo -e "${YELLOW}[Gitea Init] Pushing to remote: ${REPO_FULL_URL}${NC}"
+    
+    # The first push to Gitea may create the repo
+    if ! git push -u origin main 2>&1; then
+        echo -e "${YELLOW}[Gitea Init] main branch push failed, trying master...${NC}"
+        git push -u origin master 2>&1 || {
+            echo -e "${RED}[Gitea Init] ERROR: Failed to push to Gitea${NC}"
+            return 1
+        }
+    fi
     
     cd - > /dev/null
     
     echo -e "${GREEN}[Gitea Init] Repository populated${NC}"
 }
 
-# Function to clean up (optional, called with --cleanup flag)
+# Cleanup function (optional)
 cleanup_repo() {
     echo -e "${YELLOW}[Gitea Init] Cleaning up test repository${NC}"
-    
-    # Remove work directory
-    rm -rf "${TEST_MOUNT}"
-    
-    # Remove bare repository
-    rm -rf "${REPO_PATH}"
-    
+    rm -rf "${WORK_DIR}"
     echo -e "${GREEN}[Gitea Init] Cleanup complete${NC}"
 }
 
@@ -133,23 +111,25 @@ main() {
     
     # Check if we're in ACT mode
     if [ -z "${ACT}" ]; then
-        echo -e "${YELLOW}[Gitea Init] Not running in ACT mode (ACT env var not set). Skipping gitea init.${NC}"
+        echo -e "${YELLOW}[Gitea Init] Not running in ACT mode (ACT env var not set). Skipping initialization.${NC}"
         return 0
     fi
     
-    # Wait for gitea
+    # Wait for gitea to be healthy
     if ! wait_for_gitea; then
-        echo -e "${RED}[Gitea Init] Failed to connect to gitea${NC}"
+        echo -e "${RED}[Gitea Init] Failed to connect to Gitea${NC}"
         return 1
     fi
     
-    # Create and populate repo
-    create_bare_repo
-    populate_repo
+    # Initialize repository
+    if ! init_repo; then
+        echo -e "${RED}[Gitea Init] Failed to initialize repository${NC}"
+        return 1
+    fi
     
-    echo -e "${GREEN}[Gitea Init] Gitea initialization complete!${NC}"
-    echo -e "${GREEN}[Gitea Init] Repository available at: ${GITEA_URL}/api/v1/repos/test-repo${NC}"
-    echo -e "${GREEN}[Gitea Init] Git URL: http://${GITEA_HOST}:${GITEA_PORT}/test-repo.git${NC}"
+    echo -e "${GREEN}[Gitea Init] Initialization complete!${NC}"
+    echo -e "${GREEN}[Gitea Init] Git URL: ${REPO_FULL_URL}${NC}"
+    echo -e "${GREEN}[Gitea Init] Repository available at: ${GITEA_URL}/test-repo${NC}"
 }
 
 main "$@"

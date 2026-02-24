@@ -14,22 +14,6 @@ concurrency:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    # Gitea service for ACT local testing (sibling service, no DinD needed)
-    services:
-      gitea:
-        image: gitea/gitea:latest
-        options: >-
-          --hostname gitea
-          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:3000/api/healthz"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-        ports:
-          - 3000:3000
-          - 22:22
-        env:
-          GITEA_ROOT_URL: http://localhost:3000
-          GITEA_DEFAULT_THEME: auto
     env:
       UV_VENV: /tmp/venv
     defaults:
@@ -55,15 +39,15 @@ jobs:
           fi
           echo "test_branch=${TEST_BRANCH}" >> $GITHUB_OUTPUT
 
-      - name: Compute gitea URL (ACT mode)
+      - name: Compute gitea URL
         id: gitea-url
         run: |
           if [ "${{ github.event.act }}" = "true" ]; then
-            GITEA_URL="http://localhost:3000"
+            GIT_URL="http://localhost:3000"
           else
-            GITEA_URL="https://github.com/${{ github.repository_owner }}"
+            GIT_URL="https://github.com/${{ github.repository_owner }}"
           fi
-          echo "gitea_url=${GITEA_URL}" >> $GITHUB_OUTPUT
+          echo "gitea_url=${GIT_URL}" >> $GITHUB_OUTPUT
 
       - name: Initialize gitea repository (ACT mode only)
         if: github.event.act
@@ -111,21 +95,6 @@ jobs:
   phase-1:
     needs: [setup, pre-release-tests]
     runs-on: ubuntu-latest
-    services:
-      gitea:
-        image: gitea/gitea:latest
-        options: >-
-          --hostname gitea
-          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:3000/api/healthz"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-        ports:
-          - 3000:3000
-          - 22:22
-        env:
-          GITEA_ROOT_URL: http://localhost:3000
-          GITEA_DEFAULT_THEME: auto
     env:
       UV_VENV: /tmp/venv
     defaults:
@@ -196,21 +165,6 @@ jobs:
   phase-2:
     needs: [setup, phase-1]
     runs-on: ubuntu-latest
-    services:
-      gitea:
-        image: gitea/gitea:latest
-        options: >
-          --hostname gitea
-          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:3000/api/healthz"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-        ports:
-          - 3000:3000
-          - 22:22
-        env:
-          GITEA_ROOT_URL: http://localhost:3000
-          GITEA_DEFAULT_THEME: auto
     env:
       UV_VENV: /tmp/venv
     defaults:
@@ -286,21 +240,6 @@ jobs:
   phase-3:
     needs: [setup, phase-2]
     runs-on: ubuntu-latest
-    services:
-      gitea:
-        image: gitea/gitea:latest
-        options: >
-          --hostname gitea
-          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:3000/api/healthz"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-        ports:
-          - 3000:3000
-          - 22:22
-        env:
-          GITEA_ROOT_URL: http://localhost:3000
-          GITEA_DEFAULT_THEME: auto
     env:
       UV_VENV: /tmp/venv
     defaults:
@@ -372,21 +311,6 @@ jobs:
   phase-4:
     needs: [setup, phase-3]
     runs-on: ubuntu-latest
-    services:
-      gitea:
-        image: gitea/gitea:latest
-        options: >
-          --hostname gitea
-          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:3000/api/healthz"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-        ports:
-          - 3000:3000
-          - 22:22
-        env:
-          GITEA_ROOT_URL: http://localhost:3000
-          GITEA_DEFAULT_THEME: auto
     env:
       UV_VENV: /tmp/venv
     defaults:
@@ -457,21 +381,6 @@ jobs:
   phase-5:
     needs: [setup, phase-4]
     runs-on: ubuntu-latest
-    services:
-      gitea:
-        image: gitea/gitea:latest
-        options: >
-          --hostname gitea
-          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:3000/api/healthz"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-        ports:
-          - 3000:3000
-          - 22:22
-        env:
-          GITEA_ROOT_URL: http://localhost:3000
-          GITEA_DEFAULT_THEME: auto
     env:
       UV_VENV: /tmp/venv
     defaults:
