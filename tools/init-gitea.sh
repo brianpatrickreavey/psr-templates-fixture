@@ -55,9 +55,13 @@ init_repo() {
     
     # Copy fixture files
     echo -e "${YELLOW}[Gitea Init] Copying psr-templates-fixture files...${NC}"
-    FIXTURE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    # Use current working directory (should be the fixture root when called from workflow)
+    FIXTURE_ROOT="$(pwd)"
     
-    find "${FIXTURE_ROOT}" -type f \
+    # If we're in the tools directory, go back to fixture root
+    if [ -f "./init-gitea.sh" ]; then
+        FIXTURE_ROOT="$(cd .. && pwd)"
+    fi
         ! -path '*/.git/*' \
         ! -path '*/.github/*' \
         ! -path '*/.*' \
@@ -75,7 +79,10 @@ init_repo() {
         git commit -m "Initial commit for ACT testing"
         echo -e "${GREEN}[Gitea Init] Initial commit created${NC}"
     else
-        echo -e "${YELLOW}[Gitea Init] No changes to commit${NC}"
+        echo -e "${YELLOW}[Gitea Init] No files to commit, creating empty commit...${NC}"
+        # Create an empty initial commit
+        git commit --allow-empty -m "Initial empty commit for ACT testing"
+        echo -e "${GREEN}[Gitea Init] Empty initial commit created${NC}"
     fi
     
     # Push to Gitea
