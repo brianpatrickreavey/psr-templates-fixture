@@ -96,28 +96,43 @@ docker exec ${GITEA_CONTAINER} \
 echo "   ✓ Permissions fixed"
 echo ""
 
-# Create admin user
+# Create admin user (idempotent - check first)
 echo "8. Creating admin user..."
-docker exec ${GITEA_CONTAINER} \
-  bash -c 'su-exec git /usr/local/bin/gitea admin user create --username=gitadmin --password=gitadmin123 --email=admin@local --admin --must-change-password=false' > /dev/null 2>&1
-echo "   ✓ Admin user 'gitadmin' created"
+# Check if user already exists
+if curl -s -u gitadmin:gitadmin123 http://localhost:${GITEA_PORT}/api/v1/user > /dev/null 2>&1; then
+  echo "   ℹ Admin user 'gitadmin' already exists"
+else
+  docker exec ${GITEA_CONTAINER} \
+    bash -c 'su-exec git /usr/local/bin/gitea admin user create --username=gitadmin --password=gitadmin123 --email=admin@local --admin --must-change-password=false' > /dev/null 2>&1 || true
+  if curl -s -u gitadmin:gitadmin123 http://localhost:${GITEA_PORT}/api/v1/user > /dev/null 2>&1; then
+    echo "   ✓ Admin user 'gitadmin' created"
+  else
+    echo "   ⚠ Failed to create admin user (continuing anyway)"
+  fi
+fi
 echo ""
 
-# Create repository via API
+# Create repository via API (idempotent)
 echo "9. Creating test repository via API..."
 sleep 2  # Allow time for user creation to persist
-REPO_RESPONSE=$(curl -s -X POST \
-  -H "Content-Type: application/json" \
-  -d "{\"name\":\"${REPO_NAME}\",\"description\":\"Test repository\",\"private\":false,\"auto_init\":true}" \
-  -u "gitadmin:gitadmin123" \
-  http://localhost:${GITEA_PORT}/api/v1/user/repos)
 
-if echo "${REPO_RESPONSE}" | grep -q "\"id\""; then
-  echo "   ✓ Repository '${REPO_NAME}' created via API"
+# Check if repo already exists
+REPO_CHECK=$(curl -s -u gitadmin:gitadmin123 http://localhost:${GITEA_PORT}/api/v1/repos/gitadmin/${REPO_NAME})
+if echo "${REPO_CHECK}" | grep -q "\"id\""; then
+  echo "   ℹ Repository '${REPO_NAME}' already exists"
 else
-  echo "   ✗ Failed to create repository via API"
-  echo "   Response: ${REPO_RESPONSE}"
-  exit 1
+  REPO_RESPONSE=$(curl -s -X POST \
+    -H "Content-Type: application/json" \
+    -d "{\"name\":\"${REPO_NAME}\",\"description\":\"Test repository\",\"private\":false,\"auto_init\":true}" \
+    -u "gitadmin:gitadmin123" \
+    http://localhost:${GITEA_PORT}/api/v1/user/repos)
+
+  if echo "${REPO_RESPONSE}" | grep -q "\"id\""; then
+    echo "   ✓ Repository '${REPO_NAME}' created via API"
+  else
+    echo "   ⚠ Failed to create repository via API (repo may already exist)"
+    echo "   Response: ${REPO_RESPONSE}"
+  fi
 fi
 echo ""
 

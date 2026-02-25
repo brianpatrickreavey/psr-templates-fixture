@@ -97,16 +97,9 @@ CREDS
     
     echo -e "${YELLOW}[Gitea Populate] Using fixture root: ${FIXTURE_ROOT}${NC}"
     
-    # Copy files, excluding .git, build artifacts, and cache
+    # Copy all files except .git (which we'll initialize separately)
     find "${FIXTURE_ROOT}" \
-        -maxdepth 2 \
         ! -path '*/.git/*' \
-        ! -path '*/.github/*' \
-        ! -path '*/.*' \
-        ! -path '*/__pycache__/*' \
-        ! -path '*/.pytest_cache/*' \
-        ! -path '*/node_modules/*' \
-        ! -name '*.pyc' \
         -type f \
         -exec bash -c 'mkdir -p "'"${WORK_DIR}"'/$(dirname "{}" | sed "s|^'"${FIXTURE_ROOT}"'/||")" && cp "{}" "'"${WORK_DIR}"'/$(echo "{}" | sed "s|^'"${FIXTURE_ROOT}"'/||")"' \;
     

@@ -96,7 +96,22 @@ jobs:
         run: |
           git config --global credential.helper store
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
+          git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
+
+      - name: Debug - List workspace contents (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          echo "=== Workspace root ==="
+          ls -la
+          echo ""
+          echo "=== .github directory ==="
+          ls -la .github 2>&1 || echo ".github not found"
+          echo ""
+          echo "=== .github/actions directory ==="
+          ls -la .github/actions 2>&1 || echo ".github/actions not found"
+          echo ""
+          echo "=== Git status ==="
+          git status
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -150,7 +165,7 @@ jobs:
         run: |
           git config --global credential.helper store
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
+          git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -237,7 +252,7 @@ jobs:
         run: |
           git config --global credential.helper store
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
+          git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -324,7 +339,7 @@ jobs:
         run: |
           git config --global credential.helper store
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
+          git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -412,7 +427,7 @@ jobs:
         run: |
           git config --global credential.helper store
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
+          git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -499,7 +514,7 @@ jobs:
         run: |
           git config --global credential.helper store
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
+          git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -585,7 +600,7 @@ jobs:
         run: |
           git config --global credential.helper store
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
+          git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
