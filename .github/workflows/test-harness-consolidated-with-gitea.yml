@@ -49,11 +49,13 @@ jobs:
           fi
           echo "gitea_url=${GIT_URL}" >> $GITHUB_OUTPUT
 
+      - name: Start Gitea server (ACT mode only)
+        if: github.event.act
+        run: make start-gitea
+
       - name: Initialize gitea repository (ACT mode only)
         if: github.event.act
-        run: |
-          # Script checks $ACT internally and skips if not in ACT mode
-          bash ./tools/init-gitea.sh
+        run: bash ./tools/init-gitea.sh
 
       - name: Cleanup tags and releases (GitHub mode only)
         if: ${{ !github.event.act }}

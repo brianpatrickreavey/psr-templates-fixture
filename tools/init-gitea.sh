@@ -1,14 +1,19 @@
 #!/bin/bash
 # Initialize Gitea repository with psr-templates-fixture files for ACT local testing
-# This script runs only in ACT mode and assumes Gitea is already running via Docker
-# Started by: make start-gitea
+# This script runs only in ACT mode. Expects: Gitea already running with credentials gitadmin/gitadmin123
+# Pre-existing repo: test-repo already created via Gitea API (created by docker-gitea-start.sh)
 
 set -e
 
-GITEA_URL="http://localhost:3000"
+# Get the repo root (where this script is called from)
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+GITEA_PORT=3000
+GITEA_URL="http://localhost:${GITEA_PORT}"
+GITEA_ADMIN_USER="gitadmin"
+GITEA_ADMIN_PASS="gitadmin123"
 REPO_NAME="test-repo"
-# Use file:// protocol for local pushes (works from workflow container)
-REPO_FULL_URL="file:///data/git/repositories/${REPO_NAME}.git"
+REPO_FULL_URL="${GITEA_URL}/${GITEA_ADMIN_USER}/${REPO_NAME}.git"
 WORK_DIR="/tmp/test-repo-work"
 
 # Colors for output
@@ -56,17 +61,19 @@ init_repo() {
     
     # Copy fixture files
     echo -e "${YELLOW}[Gitea Init] Copying psr-templates-fixture files...${NC}"
-    # Look for fixture files in parent directory (since we're in /tmp/test-repo-work after git init)
-    # The workflow calls this from the fixture root, so check common paths
-    FIXTURE_ROOT=""
-    for path in .. /home/bpreavey/Code/psr-templates-fixture $(pwd); do
-        if [ -f "${path}/Makefile" ] && [ -f "${path}/pyproject.toml" ]; then
-            FIXTURE_ROOT="${path}"
-            break
-        fi
-    done
     
-    if [ -z "${FIXTURE_ROOT}" ]; then
+    FIXTURE_ROOT="${REPO_ROOT}"
+    if [ ! -f "${FIXTURE_ROOT}/Makefile" ] || [ ! -f "${FIXTURE_ROOT}/pyproject.toml" ]; then
+        # Fallback search
+        for path in /home/bpreavey/Code/psr-templates-fixture $(pwd)/.. $(pwd)/../..; do
+            if [ -f "${path}/Makefile" ] && [ -f "${path}/pyproject.toml" ]; then
+                FIXTURE_ROOT="${path}"
+                break
+            fi
+        done
+    fi
+    
+    if [ ! -f "${FIXTURE_ROOT}/Makefile" ]; then
         echo -e "${YELLOW}[Gitea Init] Warning: Could not locate fixture root, copying will be skipped${NC}"
     else
         echo -e "${YELLOW}[Gitea Init] Using fixture root: ${FIXTURE_ROOT}${NC}"
@@ -80,7 +87,7 @@ init_repo() {
             ! -path '*/node_modules/*' \
             ! -name '*.pyc' \
             -type f \
-            -exec bash -c 'mkdir -p "'"${WORK_DIR}"'/$(dirname {})" && cp "{}" "'"${WORK_DIR}"'/{}"' \;
+            -exec bash -c 'mkdir -p "'"${WORK_DIR}"'/$(dirname "{}" | sed "s|^'"${FIXTURE_ROOT}"'/||")" && cp "{}" "'"${WORK_DIR}"'/$(echo "{}" | sed "s|^'"${FIXTURE_ROOT}"'/||")"' \;
     fi
     
     # Create initial commit
@@ -92,28 +99,14 @@ init_repo() {
         echo -e "${GREEN}[Gitea Init] Initial commit created${NC}"
     else
         echo -e "${YELLOW}[Gitea Init] No files to commit, creating empty commit...${NC}"
-        # Create an empty initial commit
         git commit --allow-empty -m "Initial empty commit for ACT testing"
         echo -e "${GREEN}[Gitea Init] Empty initial commit created${NC}"
     fi
     
-    # Create bare repository in Gitea's repository root directory
-    echo -e "${YELLOW}[Gitea Init] Creating bare repository in Gitea container...${NC}"
-    local gitea_container=${GITEA_CONTAINER:-"act-gitea-local"}
-    local gitea_repo_path="/data/git/repositories/${REPO_NAME}.git"
+    # Push to Gitea using HTTP auth
+    echo -e "${YELLOW}[Gitea Init] Pushing to remote: ${REPO_FULL_URL}...${NC}"
     
-    if docker exec "${gitea_container}" mkdir -p "$(dirname "${gitea_repo_path}")" && \
-       docker exec "${gitea_container}" git init --bare "${gitea_repo_path}" 2>&1 | grep -q "Initialized"; then
-        echo -e "${GREEN}[Gitea Init] Bare repository created at ${gitea_repo_path}${NC}"
-    else
-        echo -e "${RED}[Gitea Init] ERROR: Failed to create bare repository${NC}"
-        return 1
-    fi
-    
-    # Push to Gitea
-    echo -e "${YELLOW}[Gitea Init] Pushing to remote: ${REPO_FULL_URL}${NC}"
-    
-    # Push to main; if that fails (branch name/ref issue), try master
+    # Try main branch first (default in modern git)
     if git push -u origin main 2>&1; then
         echo -e "${GREEN}[Gitea Init] Successfully pushed to main${NC}"
     else
@@ -165,7 +158,8 @@ main() {
     
     echo -e "${GREEN}[Gitea Init] Initialization complete!${NC}"
     echo -e "${GREEN}[Gitea Init] Git URL: ${REPO_FULL_URL}${NC}"
-    echo -e "${GREEN}[Gitea Init] Repository available at: ${GITEA_URL}/test-repo${NC}"
+    echo -e "${GREEN}[Gitea Init] Repository available at: ${GITEA_URL}/${GITEA_ADMIN_USER}/${REPO_NAME}${NC}"
 }
 
 main "$@"
+

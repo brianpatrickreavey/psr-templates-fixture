@@ -62,37 +62,7 @@ ci-simulate-consolidated:
 
 # Start local Gitea server
 start-gitea:
-	@echo "Cleaning up any existing Gitea container..." && \
-	docker rm -f $(GITEA_CONTAINER) 2>/dev/null || true; \
-	echo "Preparing Gitea data directory..." && \
-	mkdir -p /tmp/gitea-data/conf && \
-	bash ./tools/gitea-config-gen.sh /tmp/gitea-data/conf/app.ini && \
-	echo "Starting Gitea on port $(GITEA_PORT)..." && \
-	docker run -d \
-		--name $(GITEA_CONTAINER) \
-		-p $(GITEA_PORT):3000 \
-		-p 2222:22 \
-		-v /tmp/gitea-data:/data \
-		$(GITEA_IMAGE) && \
-	echo "Waiting for Gitea to be healthy..." && \
-	max_attempts=30; \
-	attempt=0; \
-	while [ $$attempt -lt $$max_attempts ]; do \
-		if curl -s http://localhost:$(GITEA_PORT) > /dev/null 2>&1; then \
-			echo "✓ Gitea is ready"; \
-			break; \
-		fi; \
-		if [ $$attempt -eq $$((max_attempts - 1)) ]; then \
-			echo "✗ Gitea failed to start"; \
-			docker rm -f $(GITEA_CONTAINER) 2>/dev/null || true; \
-			exit 1; \
-		fi; \
-		sleep 1; \
-		attempt=$$((attempt + 1)); \
-	done && \
-	echo "Creating install.lock to skip wizard..." && \
-	docker exec $(GITEA_CONTAINER) touch /data/gitea/conf/install.lock && \
-	echo "✓ Gitea installation locked"
+	@bash ./tools/docker-gitea-start.sh
 
 # Stop local Gitea server
 stop-gitea:
