@@ -51,7 +51,7 @@ jobs:
         id: gitea-url
         run: |
           if [ -n "$ACT" ]; then
-            GIT_URL="http://localhost:3000"
+            GIT_URL="http://localhost:3000/gitadmin"
           else
             GIT_URL="https://github.com/${{ github.repository_owner }}"
           fi

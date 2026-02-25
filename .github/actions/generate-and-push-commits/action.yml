@@ -29,9 +29,14 @@ runs:
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
         
-        # Only set GitHub auth if using GitHub (not gitea)
+        # Set up authentication based on repository type
         if [[ "$GIT_URL" == *"github.com"* ]]; then
+          # GitHub auth
           git config --local url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+        elif [[ "$GIT_URL" == *"localhost"* ]]; then
+          # Gitea auth (ACT mode)
+          git config --global credential.helper store
+          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
         fi
         
         # Push to the remote repository (gitea or GitHub)
