@@ -23,11 +23,19 @@ jobs:
       test_branch: ${{ steps.compute-branch.outputs.test_branch }}
       gitea_url: ${{ steps.gitea-url.outputs.gitea_url }}
     steps:
-      - name: Checkout fixture repo
+      - name: Check if running in ACT (skip checkout if true)
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "✓ Running in ACT mode - skipping checkout, already in repository"
+            exit 0
+          fi
+
+      - name: Checkout fixture repo (GitHub mode only)
+        if: success()
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          repository: ${{ github.event.act && 'brianpatrickreavey/psr-templates-fixture' || github.repository }}
+          repository: brianpatrickreavey/psr-templates-fixture
 
       - name: Compute branch name
         id: compute-branch
@@ -49,16 +57,25 @@ jobs:
           fi
           echo "gitea_url=${GIT_URL}" >> $GITHUB_OUTPUT
 
+      - name: Detect ACT mode
+        id: detect-act
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "is_act=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_act=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Start Gitea server (ACT mode only)
-        if: github.event.act
+        if: steps.detect-act.outputs.is_act == 'true'
         run: make start-gitea
 
       - name: Initialize gitea repository (ACT mode only)
-        if: github.event.act
+        if: steps.detect-act.outputs.is_act == 'true'
         run: bash ./tools/init-gitea.sh
 
       - name: Cleanup tags and releases (GitHub mode only)
-        if: ${{ !github.event.act }}
+        if: steps.detect-act.outputs.is_act == 'false'
         uses: ./.github/actions/consolidated-cleanup-tags-and-releases
 
   pre-release-tests:
