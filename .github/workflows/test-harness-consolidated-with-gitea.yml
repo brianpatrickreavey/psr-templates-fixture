@@ -167,6 +167,12 @@ jobs:
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
           git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
+      - name: Checkout test branch (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          git fetch origin ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
+          git checkout ${{ needs.setup.outputs.test_branch }} || echo "Test branch not found, staying on main"
+
       - name: Install uv
         uses: ./.github/actions/install-uv
 
@@ -254,6 +260,12 @@ jobs:
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
           git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
+      - name: Checkout test branch (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          git fetch origin ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
+          git checkout ${{ needs.setup.outputs.test_branch }} || echo "Test branch not found, staying on main"
+
       - name: Install uv
         uses: ./.github/actions/install-uv
 
@@ -340,6 +352,12 @@ jobs:
           git config --global credential.helper store
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
           git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
+
+      - name: Checkout test branch (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          git fetch origin ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
+          git checkout ${{ needs.setup.outputs.test_branch }} || echo "Test branch not found, staying on main"
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -429,6 +447,12 @@ jobs:
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
           git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
+      - name: Checkout test branch (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          git fetch origin ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
+          git checkout ${{ needs.setup.outputs.test_branch }} || echo "Test branch not found, staying on main"
+
       - name: Install uv
         uses: ./.github/actions/install-uv
 
@@ -516,6 +540,12 @@ jobs:
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
           git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
+      - name: Checkout test branch (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          git fetch origin ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
+          git checkout ${{ needs.setup.outputs.test_branch }} || echo "Test branch not found, staying on main"
+
       - name: Install uv
         uses: ./.github/actions/install-uv
 
@@ -601,6 +631,12 @@ jobs:
           git config --global credential.helper store
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
           git clone -b main --depth 1 http://localhost:3000/gitadmin/test-repo.git .
+
+      - name: Checkout test branch (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          git fetch origin ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
+          git checkout ${{ needs.setup.outputs.test_branch }} || echo "Test branch not found, staying on main"
 
       - name: Install uv
         uses: ./.github/actions/install-uv
