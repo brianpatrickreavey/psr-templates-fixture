@@ -1,0 +1,11 @@
+name: 'Test Hello'
+description: 'Simple test action'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Hello from test action
+      shell: bash
+      run: |
+        echo "TEST_ACTION_VERSION=uncommitted" >> $GITHUB_OUTPUT
+        echo "Hello from test action (uncommitted version)"

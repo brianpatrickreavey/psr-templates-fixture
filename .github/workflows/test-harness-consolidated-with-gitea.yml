@@ -23,12 +23,23 @@ jobs:
       test_branch: ${{ steps.compute-branch.outputs.test_branch }}
       git_server_url: ${{ steps.git-config.outputs.server_url }}
     steps:
+      - name: Compute git configuration
+        id: git-config
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "server_url=http://localhost:3000" >> $GITHUB_OUTPUT
+          else
+            echo "server_url=https://github.com" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout fixture repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           repository: ${{ github.repository }}
           ref: main
+          token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
+          github-server-url: ${{ steps.git-config.outputs.server_url }}
 
       - name: Compute branch name
         id: compute-branch
@@ -39,15 +50,6 @@ jobs:
             TEST_BRANCH="ci/${{ github.event.client_payload.run_id }}"
           fi
           echo "test_branch=${TEST_BRANCH}" >> $GITHUB_OUTPUT
-
-      - name: Compute git configuration
-        id: git-config
-        run: |
-          if [ -n "$ACT" ]; then
-            echo "server_url=http://localhost:3000" >> $GITHUB_OUTPUT
-          else
-            echo "server_url=https://github.com" >> $GITHUB_OUTPUT
-          fi
 
   pre-release-tests:
     runs-on: ubuntu-latest
