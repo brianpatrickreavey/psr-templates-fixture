@@ -99,18 +99,11 @@ jobs:
           fetch-depth: 0
           repository: ${{ github.repository }}
 
-      - name: Configure git for Gitea (ACT mode)
+      - name: Update git repo (ACT mode)
         if: steps.detect-act.outputs.is_act == 'true'
         run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git config --global credential.helper store
-          mkdir -p ~/.git-credentials.d
-          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          chmod 600 ~/.git-credentials
-          git remote set-url origin http://localhost:3000/gitadmin/test-repo.git
           git fetch origin master
-          git checkout master
+          git checkout master || git checkout -b master origin/master
 
       - name: Install uv
         uses: ./.github/actions/install-uv

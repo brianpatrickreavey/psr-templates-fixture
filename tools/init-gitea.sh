@@ -150,6 +150,14 @@ CREDS
     
     cd - > /dev/null
     
+    # Copy .git directory to workspace so subsequent jobs have a configured repo
+    echo -e "${YELLOW}[Gitea Init] Setting up .git in workspace for subsequent jobs...${NC}"
+    if [ -d "${WORK_DIR}/.git" ]; then
+        rm -rf "${REPO_ROOT}/.git"
+        cp -r "${WORK_DIR}/.git" "${REPO_ROOT}/.git"
+        echo -e "${GREEN}[Gitea Init] Workspace .git configured${NC}"
+    fi
+    
     echo -e "${GREEN}[Gitea Init] Repository populated${NC}"
 }
 
