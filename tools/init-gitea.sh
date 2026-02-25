@@ -52,6 +52,13 @@ init_repo() {
     echo -e "${YELLOW}[Gitea Init] Configuring git credential storage...${NC}"
     git config --global credential.helper store
     
+    # Pre-populate git credentials file
+    mkdir -p ~/.git-credentials.d
+    cat > ~/.git-credentials << 'CREDS'
+http://gitadmin:gitadmin123@localhost:3000
+CREDS
+    chmod 600 ~/.git-credentials
+    
     # Clean work directory
     rm -rf "${WORK_DIR}"
     mkdir -p "${WORK_DIR}"
@@ -122,17 +129,17 @@ init_repo() {
     REMOTE_DEFAULT=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@.*/@@' || echo "main")
     echo -e "${YELLOW}[Gitea Init] Remote default branch: ${REMOTE_DEFAULT}${NC}"
     
-    # Try to push the current branch first
-    if git push -u origin "${CURRENT_BRANCH}:${REMOTE_DEFAULT}" 2>&1; then
+    # Try to push the current branch first with timeout
+    if timeout 30 git push -u origin "${CURRENT_BRANCH}:${REMOTE_DEFAULT}" 2>&1; then
         echo -e "${GREEN}[Gitea Init] Successfully pushed ${CURRENT_BRANCH} to ${REMOTE_DEFAULT}${NC}"
     else
         # If that failed, try simple push of current branch
-        if git push -u origin "${CURRENT_BRANCH}" 2>&1; then
+        if timeout 30 git push -u origin "${CURRENT_BRANCH}" 2>&1; then
             echo -e "${GREEN}[Gitea Init] Successfully pushed ${CURRENT_BRANCH}${NC}"
         else
             # Last resort: force push
             echo -e "${YELLOW}[Gitea Init] Push failed, trying force push...${NC}"
-            if git push -f -u origin "${CURRENT_BRANCH}" 2>&1; then
+            if timeout 30 git push -f -u origin "${CURRENT_BRANCH}" 2>&1; then
                 echo -e "${GREEN}[Gitea Init] Successfully force pushed ${CURRENT_BRANCH}${NC}"
             else
                 echo -e "${RED}[Gitea Init] ERROR: Failed to push to repository${NC}"
