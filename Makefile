@@ -98,6 +98,19 @@ ci-simulate-consolidated-gitea:
 	  exit 1; \
 	fi; \
 	echo "Credentials captured: user=$$gitea_user, token=$$(echo $$gitea_token | cut -c1-8)..."; \
+	uncommitted=$$(git status --porcelain); \
+	if [ -n "$$uncommitted" ]; then \
+	  echo ""; \
+	  echo "⚠️  WARNING: UNCOMMITTED FILES DETECTED ⚠️"; \
+	  echo "The following files have uncommitted changes:"; \
+	  echo "$$uncommitted"; \
+	  echo ""; \
+	  echo "These changes will NOT be included in the Gitea population."; \
+	  echo "Commit your changes before running this test if you want them to be included."; \
+	  echo ""; \
+	  echo "Waiting 5 seconds before continuing..."; \
+	  sleep 5; \
+	fi; \
 	echo "Running consolidated-with-gitea CI simulation (artifacts: .artifacts/$$timestamp)"; \
 	act repository_dispatch \
 	  --artifact-server-path ".artifacts/$$timestamp" \

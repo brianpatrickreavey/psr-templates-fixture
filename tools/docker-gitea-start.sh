@@ -179,15 +179,15 @@ git clone --mirror "${FIXTURE_ROOT}" "${WORK_DIR}/mirror.git" 2>/dev/null || {
   git init
   git config user.name "Gitea Setup"
   git config user.email "setup@gitea.local"
-  
+
   # Copy fixture files from the current psr-templates-fixture directory
   if [ -f "${FIXTURE_ROOT}/Makefile" ] && [ -f "${FIXTURE_ROOT}/pyproject.toml" ]; then
     cp -r "${FIXTURE_ROOT}"/* "${WORK_DIR}/" 2>/dev/null || true
-    rm -rf "${WORK_DIR}/.pytest_cache" "${WORK_DIR}/__pycache__" "${WORK_DIR}/.artifacts" "${WORK_DIR}/.venv" 
+    rm -rf "${WORK_DIR}/.pytest_cache" "${WORK_DIR}/__pycache__" "${WORK_DIR}/.artifacts" "${WORK_DIR}/.venv"
     find "${WORK_DIR}" -name "*.egg-info" -type d -exec rm -rf {} + 2>/dev/null || true
     find "${WORK_DIR}" -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
   fi
-  
+
   git add -A
   git commit -m "Initial fixture setup" || true
 }
