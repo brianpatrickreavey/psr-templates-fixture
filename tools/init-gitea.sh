@@ -129,17 +129,17 @@ CREDS
     REMOTE_DEFAULT=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@.*/@@' || echo "main")
     echo -e "${YELLOW}[Gitea Init] Remote default branch: ${REMOTE_DEFAULT}${NC}"
     
-    # Try to push the current branch first with timeout
-    if timeout 30 git push -u origin "${CURRENT_BRANCH}:${REMOTE_DEFAULT}" 2>&1; then
+    # Try to push the current branch first
+    if git push -u origin "${CURRENT_BRANCH}:${REMOTE_DEFAULT}" 2>&1; then
         echo -e "${GREEN}[Gitea Init] Successfully pushed ${CURRENT_BRANCH} to ${REMOTE_DEFAULT}${NC}"
     else
         # If that failed, try simple push of current branch
-        if timeout 30 git push -u origin "${CURRENT_BRANCH}" 2>&1; then
+        if git push -u origin "${CURRENT_BRANCH}" 2>&1; then
             echo -e "${GREEN}[Gitea Init] Successfully pushed ${CURRENT_BRANCH}${NC}"
         else
             # Last resort: force push
             echo -e "${YELLOW}[Gitea Init] Push failed, trying force push...${NC}"
-            if timeout 30 git push -f -u origin "${CURRENT_BRANCH}" 2>&1; then
+            if git push -f -u origin "${CURRENT_BRANCH}" 2>&1; then
                 echo -e "${GREEN}[Gitea Init] Successfully force pushed ${CURRENT_BRANCH}${NC}"
             else
                 echo -e "${RED}[Gitea Init] ERROR: Failed to push to repository${NC}"
