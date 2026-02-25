@@ -40,7 +40,7 @@ jobs:
       - name: Compute branch name
         id: compute-branch
         run: |
-          if [ "${{ github.event.act }}" = "true" ]; then
+          if [ -n "$ACT" ]; then
             TEST_BRANCH="ci/${ACT_RUN_ID}"
           else
             TEST_BRANCH="ci/${{ github.event.client_payload.run_id }}"
@@ -50,7 +50,7 @@ jobs:
       - name: Compute gitea URL
         id: gitea-url
         run: |
-          if [ "${{ github.event.act }}" = "true" ]; then
+          if [ -n "$ACT" ]; then
             GIT_URL="http://localhost:3000"
           else
             GIT_URL="https://github.com/${{ github.repository_owner }}"
@@ -83,11 +83,34 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     steps:
-      - name: Checkout fixture repo
+      - name: Detect ACT mode
+        id: detect-act
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "is_act=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_act=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout fixture repo (GitHub mode)
+        if: steps.detect-act.outputs.is_act == 'false'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          repository: ${{ github.event.act && 'brianpatrickreavey/psr-templates-fixture' || github.repository }}
+          repository: ${{ github.repository }}
+
+      - name: Configure git for Gitea (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git config --global credential.helper store
+          mkdir -p ~/.git-credentials.d
+          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
+          chmod 600 ~/.git-credentials
+          git remote set-url origin http://localhost:3000/gitadmin/test-repo.git
+          git fetch origin master
+          git checkout master
 
       - name: Install uv
         uses: ./.github/actions/install-uv
