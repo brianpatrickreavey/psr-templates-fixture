@@ -69,6 +69,10 @@ stop-gitea:
 	@echo "Stopping Gitea..." && \
 	docker rm -f $(GITEA_CONTAINER) 2>/dev/null || echo "Gitea container not running"
 
+# Populate Gitea with fixture files (standalone, runs outside ACT)
+populate-gitea:
+	@bash ./tools/populate-gitea.sh
+
 # Simulate CI with consolidated-with-gitea workflow (local Gitea server)
 ci-simulate-consolidated-gitea: start-gitea
 	@timestamp=$$(date +%Y%m%d-%H%M%S); \

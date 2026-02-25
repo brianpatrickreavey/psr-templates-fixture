@@ -66,14 +66,6 @@ jobs:
             echo "is_act=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Initialize gitea repository (ACT mode only)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: bash ./tools/init-gitea.sh
-
-      - name: Cleanup tags and releases (GitHub mode only)
-        if: steps.detect-act.outputs.is_act == 'false'
-        uses: ./.github/actions/consolidated-cleanup-tags-and-releases
-
   pre-release-tests:
     runs-on: ubuntu-latest
     needs: setup
@@ -99,11 +91,12 @@ jobs:
           fetch-depth: 0
           repository: ${{ github.repository }}
 
-      - name: Update git repo (ACT mode)
+      - name: Clone from Gitea (ACT mode)
         if: steps.detect-act.outputs.is_act == 'true'
         run: |
-          git fetch origin master
-          git checkout master || git checkout -b master origin/master
+          git config --global credential.helper store
+          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
+          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -135,12 +128,29 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Checkout test branch
+      - name: Detect ACT mode
+        id: detect-act
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "is_act=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_act=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout test branch (GitHub mode)
+        if: steps.detect-act.outputs.is_act == 'false'
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
+
+      - name: Clone from Gitea (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          git config --global credential.helper store
+          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
+          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -205,17 +215,29 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Checkout test branch
+      - name: Detect ACT mode
+        id: detect-act
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "is_act=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_act=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout test branch (GitHub mode)
+        if: steps.detect-act.outputs.is_act == 'false'
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
 
-      - name: Add gitea remote (ACT mode)
-        if: github.event.act
+      - name: Clone from Gitea (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
         run: |
-          git remote set-url origin ${{ needs.setup.outputs.gitea_url }}/test-repo.git || true
+          git config --global credential.helper store
+          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
+          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -280,12 +302,29 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Checkout test branch
+      - name: Detect ACT mode
+        id: detect-act
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "is_act=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_act=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout test branch (GitHub mode)
+        if: steps.detect-act.outputs.is_act == 'false'
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
+
+      - name: Clone from Gitea (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          git config --global credential.helper store
+          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
+          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -351,12 +390,29 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Checkout test branch
+      - name: Detect ACT mode
+        id: detect-act
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "is_act=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_act=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout test branch (GitHub mode)
+        if: steps.detect-act.outputs.is_act == 'false'
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
+
+      - name: Clone from Gitea (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          git config --global credential.helper store
+          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
+          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -421,12 +477,29 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Checkout test branch
+      - name: Detect ACT mode
+        id: detect-act
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "is_act=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_act=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout test branch (GitHub mode)
+        if: steps.detect-act.outputs.is_act == 'false'
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
+
+      - name: Clone from Gitea (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          git config --global credential.helper store
+          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
+          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -490,12 +563,29 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     steps:
-      - name: Checkout test branch
+      - name: Detect ACT mode
+        id: detect-act
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "is_act=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_act=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout test branch (GitHub mode)
+        if: steps.detect-act.outputs.is_act == 'false'
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
           fetch-depth: 0
+
+      - name: Clone from Gitea (ACT mode)
+        if: steps.detect-act.outputs.is_act == 'true'
+        run: |
+          git config --global credential.helper store
+          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
+          git clone -b master --depth 1 http://localhost:3000/gitadmin/test-repo.git .
 
       - name: Install uv
         uses: ./.github/actions/install-uv
