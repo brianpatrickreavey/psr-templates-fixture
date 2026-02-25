@@ -1,4 +1,4 @@
-.PHONY: ci-simulate ci-simulate-consolidated ci-simulate-consolidated-gitea start-gitea stop-gitea clean-tags clean-releases clean-tags-and-releases clean test unzip-artifacts
+.PHONY: ci-simulate ci-simulate-consolidated ci-simulate-consolidated-gitea start-gitea restart-gitea stop-gitea clean-tags clean-releases clean-tags-and-releases clean test unzip-artifacts
 
 # Gitea configuration
 GITEA_CONTAINER = act-gitea-local
@@ -69,14 +69,35 @@ stop-gitea:
 	@echo "Stopping Gitea..." && \
 	docker rm -f $(GITEA_CONTAINER) 2>/dev/null || echo "Gitea container not running"
 
+# Restart Gitea (clean shutdown and fresh start)
+restart-gitea: stop-gitea
+	@sleep 2 && echo "Starting fresh Gitea..." && \
+	make start-gitea
+
+# Clean Gitea data and restart (full reset)
+clean-gitea: stop-gitea
+	@echo "Cleaning Gitea data directory..." && \
+	rm -rf /tmp/gitea-data
+
 # Populate Gitea with fixture files (standalone, runs outside ACT)
 populate-gitea:
 	@bash ./tools/populate-gitea.sh
 
 # Simulate CI with consolidated-with-gitea workflow (local Gitea server)
-ci-simulate-consolidated-gitea: start-gitea
+ci-simulate-consolidated-gitea:
 	@timestamp=$$(date +%Y%m%d-%H%M%S); \
 	mkdir -p .artifacts/$$timestamp; \
+	echo "Starting Gitea and capturing credentials..."; \
+	gitea_output=$$(make start-gitea 2>&1); \
+	gitea_user=$$(echo "$$gitea_output" | grep '^GITEA_USER=' | cut -d= -f2); \
+	gitea_pass=$$(echo "$$gitea_output" | grep '^GITEA_PASS=' | cut -d= -f2); \
+	gitea_token=$$(echo "$$gitea_output" | grep '^GITEA_TOKEN=' | cut -d= -f2); \
+	if [ -z "$$gitea_user" ] || [ -z "$$gitea_pass" ] || [ -z "$$gitea_token" ]; then \
+	  echo "ERROR: Failed to capture Gitea credentials"; \
+	  make stop-gitea; \
+	  exit 1; \
+	fi; \
+	echo "Credentials captured: user=$$gitea_user, token=$$(echo $$gitea_token | cut -c1-8)..."; \
 	echo "Running consolidated-with-gitea CI simulation (artifacts: .artifacts/$$timestamp)"; \
 	act repository_dispatch \
 	  --artifact-server-path ".artifacts/$$timestamp" \
@@ -84,6 +105,7 @@ ci-simulate-consolidated-gitea: start-gitea
 	  -e .act/event.json \
 	  --container-architecture linux/amd64 \
 	  --env ACT_RUN_ID="act-test-run-$$timestamp" \
+	  --env GITEA_TOKEN="$$gitea_token" \
 	  | tee .artifacts/$$timestamp/ci-simulate-consolidated-gitea.log; \
 	exit_code=$$?; \
 	make stop-gitea; \

@@ -11,10 +11,6 @@ concurrency:
   group: psr-test-harness-${{ github.repository }}
   cancel-in-progress: false
 
-env:
-  GITEA_USER: gitadmin
-  GITEA_PASS: gitadmin123
-
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -26,16 +22,13 @@ jobs:
     outputs:
       test_branch: ${{ steps.compute-branch.outputs.test_branch }}
       git_server_url: ${{ steps.git-config.outputs.server_url }}
-      git_owner_repo: ${{ steps.git-config.outputs.owner_repo }}
-      gitea_url: ${{ steps.git-config.outputs.gitea_url }}
-      gitea_token: ${{ steps.git-config.outputs.gitea_token }}
-      is_act: ${{ steps.git-config.outputs.is_act }}
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          repository: brianpatrickreavey/psr-templates-fixture
+          repository: ${{ github.repository }}
+          ref: main
 
       - name: Compute branch name
         id: compute-branch
@@ -52,16 +45,8 @@ jobs:
         run: |
           if [ -n "$ACT" ]; then
             echo "server_url=http://localhost:3000" >> $GITHUB_OUTPUT
-            echo "owner_repo=gitadmin/test-repo" >> $GITHUB_OUTPUT
-            echo "gitea_url=http://localhost:3000/gitadmin" >> $GITHUB_OUTPUT
-            echo "gitea_token=86869cf1aed94bd121df9065bcbab473f2047802" >> $GITHUB_OUTPUT
-            echo "is_act=true" >> $GITHUB_OUTPUT
           else
             echo "server_url=https://github.com" >> $GITHUB_OUTPUT
-            echo "owner_repo=${{ github.repository }}" >> $GITHUB_OUTPUT
-            echo "gitea_url=https://github.com/${{ github.repository_owner }}" >> $GITHUB_OUTPUT
-            echo "gitea_token=" >> $GITHUB_OUTPUT
-            echo "is_act=false" >> $GITHUB_OUTPUT
           fi
 
   pre-release-tests:
@@ -73,11 +58,20 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     steps:
-      - name: Checkout repository
+      - name: Checkout fixture repository from Gitea
         uses: actions/checkout@v4
         with:
-          repository: brianpatrickreavey/psr-templates-fixture
+          repository: ${{ github.repository }}
+          token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
+          github-server-url: ${{ needs.setup.outputs.git_server_url }}
           fetch-depth: 25
+
+      - name: Create and push test branch to Gitea
+        run: |
+          git config user.name "Gitea Setup"
+          git config user.email "setup@gitea.local"
+          git checkout -b ${{ needs.setup.outputs.test_branch }}
+          git push -u origin ${{ needs.setup.outputs.test_branch }}
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -87,14 +81,6 @@ jobs:
 
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-dependencies
-
-      - name: Create test branch
-        uses: ./.github/actions/create-test-branch
-        with:
-          test_branch: ${{ needs.setup.outputs.test_branch }}
-          git_server_url: ${{ needs.setup.outputs.git_server_url }}
-          git_owner_repo: ${{ needs.setup.outputs.git_owner_repo }}
-          git_token: ${{ needs.setup.outputs.gitea_token }}
 
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
@@ -112,12 +98,12 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Checkout repository
+      - name: Checkout fixture repository from Gitea
         uses: actions/checkout@v4
         with:
-          repository: ${{ needs.setup.outputs.git_owner_repo }}
+          repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
-          token: ${{ needs.setup.outputs.gitea_token || secrets.GITHUB_TOKEN }}
+          token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
           github-server-url: ${{ needs.setup.outputs.git_server_url }}
           fetch-depth: 25
 
@@ -135,7 +121,7 @@ jobs:
         with:
           phase: '1'
           branch: ${{ needs.setup.outputs.test_branch }}
-          git-url: ${{ needs.setup.outputs.gitea_url }}
+          git-url: ${{ needs.setup.outputs.git_server_url }}/${{ github.repository_owner }}
 
       - name: Run psr_prepare (Phase 1)
         run: |
@@ -146,11 +132,11 @@ jobs:
         id: psr
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ needs.setup.outputs.is_act == 'true' && 'act' || 'github' }}
+          mode: ${{ env.GITEA_TOKEN && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ needs.setup.outputs.is_act == 'false' && steps.psr.outputs.tag }}
+        if: ${{ !env.GITEA_TOKEN && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
@@ -184,12 +170,12 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Checkout repository
+      - name: Checkout fixture repository from Gitea
         uses: actions/checkout@v4
         with:
-          repository: ${{ needs.setup.outputs.git_owner_repo }}
+          repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
-          token: ${{ needs.setup.outputs.gitea_token || secrets.GITHUB_TOKEN }}
+          token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
           github-server-url: ${{ needs.setup.outputs.git_server_url }}
           fetch-depth: 25
 
@@ -207,7 +193,7 @@ jobs:
         with:
           phase: '2'
           branch: ${{ needs.setup.outputs.test_branch }}
-          git-url: ${{ needs.setup.outputs.gitea_url }}
+          git-url: ${{ needs.setup.outputs.git_server_url }}/${{ github.repository_owner }}
 
       - name: Run psr_prepare (Phase 2)
         run: |
@@ -218,11 +204,11 @@ jobs:
         id: psr
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ needs.setup.outputs.is_act == 'true' && 'act' || 'github' }}
+          mode: ${{ env.GITEA_TOKEN && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ needs.setup.outputs.is_act == 'false' && steps.psr.outputs.tag }}
+        if: ${{ !env.GITEA_TOKEN && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
@@ -256,12 +242,12 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Checkout repository
+      - name: Checkout fixture repository from Gitea
         uses: actions/checkout@v4
         with:
-          repository: ${{ needs.setup.outputs.git_owner_repo }}
+          repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
-          token: ${{ needs.setup.outputs.gitea_token || secrets.GITHUB_TOKEN }}
+          token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
           github-server-url: ${{ needs.setup.outputs.git_server_url }}
           fetch-depth: 25
 
@@ -279,7 +265,7 @@ jobs:
         with:
           phase: '3'
           branch: ${{ needs.setup.outputs.test_branch }}
-          git-url: ${{ needs.setup.outputs.gitea_url }}
+          git-url: ${{ needs.setup.outputs.git_server_url }}/${{ github.repository_owner }}
 
       - name: Run psr_prepare (Phase 3)
         run: |
@@ -290,12 +276,12 @@ jobs:
         id: psr
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ needs.setup.outputs.is_act == 'true' && 'act' || 'github' }}
+          mode: ${{ env.GITEA_TOKEN && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           force: major
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ needs.setup.outputs.is_act == 'false' && steps.psr.outputs.tag }}
+        if: ${{ !env.GITEA_TOKEN && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
@@ -329,12 +315,12 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Checkout repository
+      - name: Checkout fixture repository from Gitea
         uses: actions/checkout@v4
         with:
-          repository: ${{ needs.setup.outputs.git_owner_repo }}
+          repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
-          token: ${{ needs.setup.outputs.gitea_token || secrets.GITHUB_TOKEN }}
+          token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
           github-server-url: ${{ needs.setup.outputs.git_server_url }}
           fetch-depth: 25
 
@@ -352,7 +338,7 @@ jobs:
         with:
           phase: '4'
           branch: ${{ needs.setup.outputs.test_branch }}
-          git-url: ${{ needs.setup.outputs.gitea_url }}
+          git-url: ${{ needs.setup.outputs.git_server_url }}/${{ github.repository_owner }}
 
       - name: Run psr_prepare (Phase 4)
         run: |
@@ -363,11 +349,11 @@ jobs:
         id: psr
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ needs.setup.outputs.is_act == 'true' && 'act' || 'github' }}
+          mode: ${{ env.GITEA_TOKEN && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ needs.setup.outputs.is_act == 'false' && steps.psr.outputs.tag }}
+        if: ${{ !env.GITEA_TOKEN && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
@@ -401,12 +387,12 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Checkout repository
+      - name: Checkout fixture repository from Gitea
         uses: actions/checkout@v4
         with:
-          repository: ${{ needs.setup.outputs.git_owner_repo }}
+          repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
-          token: ${{ needs.setup.outputs.gitea_token || secrets.GITHUB_TOKEN }}
+          token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
           github-server-url: ${{ needs.setup.outputs.git_server_url }}
           fetch-depth: 25
 
@@ -424,7 +410,7 @@ jobs:
         with:
           phase: '5'
           branch: ${{ needs.setup.outputs.test_branch }}
-          git-url: ${{ needs.setup.outputs.gitea_url }}
+          git-url: ${{ needs.setup.outputs.git_server_url }}/${{ github.repository_owner }}
 
       - name: Run psr_prepare (Phase 5)
         run: |
@@ -435,11 +421,11 @@ jobs:
         id: psr
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ needs.setup.outputs.is_act == 'true' && 'act' || 'github' }}
+          mode: ${{ env.GITEA_TOKEN && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ needs.setup.outputs.is_act == 'false' && steps.psr.outputs.tag }}
+        if: ${{ !env.GITEA_TOKEN && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
@@ -467,17 +453,17 @@ jobs:
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
-      PSR_VALIDATE_REAL: ${{ needs.setup.outputs.is_act == 'false' && '1' || '0' }}
+      PSR_VALIDATE_REAL: '0'
     defaults:
       run:
         working-directory: ${{ github.workspace }}
     steps:
-      - name: Checkout repository
+      - name: Checkout fixture repository from Gitea
         uses: actions/checkout@v4
         with:
-          repository: ${{ needs.setup.outputs.git_owner_repo }}
+          repository: ${{ github.repository }}
           ref: ${{ needs.setup.outputs.test_branch }}
-          token: ${{ needs.setup.outputs.gitea_token || secrets.GITHUB_TOKEN }}
+          token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
           github-server-url: ${{ needs.setup.outputs.git_server_url }}
           fetch-depth: 25
 
@@ -509,7 +495,7 @@ jobs:
   #       For ACT mode: Use `make clean-tags-and-releases` Makefile target instead.
   cleanup:
     needs: [setup, post-release-tests]
-    if: ${{ needs.setup.outputs.is_act == 'false' && github.event.client_payload.cleanup_after && always() }}
+    if: ${{ github.event.client_payload.cleanup_after && always() }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

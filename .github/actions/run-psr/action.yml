@@ -48,18 +48,21 @@ runs:
       if: inputs.mode == 'act'
       env:
         GIT_URL: ${{ inputs.git-url }}
+        GITEA_TOKEN: ${{ env.GITEA_TOKEN }}
+        GITEA_USER: ${{ github.repository_owner }}
       run: |
         source /tmp/venv/bin/activate
 
         # Set up authentication for Gitea if needed
         if [[ "$GIT_URL" == *"localhost"* ]]; then
           git config --global credential.helper store
-          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
+          echo "http://${GITEA_USER}:${GITEA_TOKEN}@localhost:3000" >> ~/.git-credentials
         fi
 
         # Configure git to use the correct remote URL
         if [ -n "$GIT_URL" ]; then
-          git remote set-url origin "$GIT_URL/test-repo.git"
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d/ -f2)
+          git remote set-url origin "$GIT_URL/${REPO_NAME}.git"
         fi
 
         force_arg=""

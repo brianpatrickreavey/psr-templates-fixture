@@ -8,9 +8,6 @@ inputs:
     description: 'Git server URL (e.g., https://github.com or http://localhost:3000)'
     required: false
     default: 'https://github.com'
-  git_owner_repo:
-    description: 'Repository owner/name (e.g., owner/repo)'
-    required: false
   git_token:
     description: 'Authentication token for git server'
     required: false
@@ -23,26 +20,27 @@ runs:
         GITHUB_TOKEN: ${{ github.token }}
         TEST_BRANCH: ${{ inputs.test_branch }}
         GIT_SERVER_URL: ${{ inputs.git_server_url }}
-        GIT_OWNER_REPO: ${{ inputs.git_owner_repo }}
         GIT_TOKEN: ${{ inputs.git_token }}
+        GIT_REPOSITORY: ${{ github.repository }}
+        GITEA_USER: ${{ github.repository_owner }}
       run: |
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
-        
+
         # Determine the remote URL based on server
         if [[ "$GIT_SERVER_URL" == *"localhost"* ]]; then
-          # Gitea with basic auth
-          REMOTE_URL="${GIT_SERVER_URL}/${GIT_OWNER_REPO}.git"
-          git config --local http.${GIT_SERVER_URL}/.extraheader "AUTHORIZATION: basic $(echo -n "gitadmin:gitadmin123" | base64)"
+          # Gitea with token auth
+          REMOTE_URL="${GIT_SERVER_URL}/${GIT_REPOSITORY}.git"
+          git config --local http.${GIT_SERVER_URL}/.extraheader "AUTHORIZATION: basic $(echo -n "${GITEA_USER}:${GIT_TOKEN}" | base64)"
         else
           # GitHub with token
           git config --local url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
-          REMOTE_URL="https://github.com/${GIT_OWNER_REPO}.git"
+          REMOTE_URL="https://github.com/${GIT_REPOSITORY}.git"
         fi
-        
+
         # Set origin to the correct server
         git remote set-url origin "$REMOTE_URL"
-        
+
         # Delete remote branch if it exists from previous test runs
         git push origin --delete $TEST_BRANCH 2>/dev/null || true
         # Create fresh local branch from main
