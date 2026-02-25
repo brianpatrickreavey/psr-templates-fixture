@@ -48,6 +48,10 @@ wait_for_gitea() {
 init_repo() {
     echo -e "${YELLOW}[Gitea Init] Initializing repository...${NC}"
     
+    # Configure git credential helper to store credentials
+    echo -e "${YELLOW}[Gitea Init] Configuring git credential storage...${NC}"
+    git config --global credential.helper store
+    
     # Clean work directory
     rm -rf "${WORK_DIR}"
     mkdir -p "${WORK_DIR}"
@@ -106,16 +110,28 @@ init_repo() {
     # Push to Gitea using HTTP auth
     echo -e "${YELLOW}[Gitea Init] Pushing to remote: ${REPO_FULL_URL}...${NC}"
     
-    # Try main branch first (default in modern git)
+    # Fetch first to sync with remote (test-repo already has initial commit from API)
+    echo -e "${YELLOW}[Gitea Init] Fetching from remote...${NC}"
+    if ! git fetch origin main 2>&1; then
+        echo -e "${YELLOW}[Gitea Init] Remote doesn't have main yet (empty repo)${NC}"
+    fi
+    
+    # Try to push main branch
     if git push -u origin main 2>&1; then
         echo -e "${GREEN}[Gitea Init] Successfully pushed to main${NC}"
     else
+        # If main push failed, try master branch
         echo -e "${YELLOW}[Gitea Init] main branch push failed, trying master...${NC}"
         if git push -u origin master 2>&1; then
             echo -e "${GREEN}[Gitea Init] Successfully pushed to master${NC}"
         else
-            echo -e "${RED}[Gitea Init] ERROR: Failed to push to both main and master${NC}"
-            return 1
+            echo -e "${YELLOW}[Gitea Init] Direct push failed, trying force push to main...${NC}"
+            if git push -f -u origin main 2>&1; then
+                echo -e "${GREEN}[Gitea Init] Successfully force pushed to main${NC}"
+            else
+                echo -e "${RED}[Gitea Init] ERROR: Failed to push to repository${NC}"
+                return 1
+            fi
         fi
     fi
     
