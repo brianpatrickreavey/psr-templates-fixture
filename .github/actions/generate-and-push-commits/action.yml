@@ -28,7 +28,7 @@ runs:
       run: |
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
-        
+
         # Set up authentication based on repository type
         if [[ "$GIT_URL" == *"github.com"* ]]; then
           # GitHub auth
@@ -38,6 +38,6 @@ runs:
           git config --global credential.helper store
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
         fi
-        
+
         # Push to the remote repository (gitea or GitHub)
         git push "$GIT_URL/test-repo.git" HEAD:${{ inputs.branch }}

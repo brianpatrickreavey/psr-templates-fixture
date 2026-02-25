@@ -50,18 +50,18 @@ runs:
         GIT_URL: ${{ inputs.git-url }}
       run: |
         source /tmp/venv/bin/activate
-        
+
         # Set up authentication for Gitea if needed
         if [[ "$GIT_URL" == *"localhost"* ]]; then
           git config --global credential.helper store
           echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
         fi
-        
+
         # Configure git to use the correct remote URL
         if [ -n "$GIT_URL" ]; then
           git remote set-url origin "$GIT_URL/test-repo.git"
         fi
-        
+
         force_arg=""
         if [ -n "${{ inputs.force }}" ]; then
           force_arg="--${{ inputs.force }}"

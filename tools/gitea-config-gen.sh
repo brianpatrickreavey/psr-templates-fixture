@@ -17,7 +17,7 @@ DB_TYPE = sqlite3
 PATH = /data/gitea/gitea.db
 LOG_SQL = false
 
-; Repository configuration  
+; Repository configuration
 [repository]
 ROOT_PATH = /data/git/repositories
 SCRIPT_TYPE = bash

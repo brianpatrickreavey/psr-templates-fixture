@@ -28,9 +28,9 @@ echo -e "${YELLOW}[Gitea Init] Starting repository initialization...${NC}"
 wait_for_gitea() {
     local timeout=30
     local elapsed=0
-    
+
     echo -e "${YELLOW}[Gitea Init] Waiting for Gitea at ${GITEA_URL}...${NC}"
-    
+
     while [ $elapsed -lt $timeout ]; do
         if curl -s "${GITEA_URL}" > /dev/null 2>&1; then
             echo -e "${GREEN}[Gitea Init] Gitea is healthy${NC}"
@@ -39,7 +39,7 @@ wait_for_gitea() {
         sleep 1
         elapsed=$((elapsed + 1))
     done
-    
+
     echo -e "${RED}[Gitea Init] ERROR: Timeout waiting for Gitea after ${timeout}s${NC}"
     return 1
 }
@@ -47,32 +47,32 @@ wait_for_gitea() {
 # Initialize repository
 init_repo() {
     echo -e "${YELLOW}[Gitea Init] Initializing repository...${NC}"
-    
+
     # Configure git credential helper to store credentials
     echo -e "${YELLOW}[Gitea Init] Configuring git credential storage...${NC}"
     git config --global credential.helper store
-    
+
     # Pre-populate git credentials file
     mkdir -p ~/.git-credentials.d
     cat > ~/.git-credentials << 'CREDS'
 http://gitadmin:gitadmin123@localhost:3000
 CREDS
     chmod 600 ~/.git-credentials
-    
+
     # Clean work directory
     rm -rf "${WORK_DIR}"
     mkdir -p "${WORK_DIR}"
     cd "${WORK_DIR}"
-    
+
     # Initialize git repo
     git init
     git config user.name "GitHub Actions"
     git config user.email "actions@github.com"
     git remote add origin "${REPO_FULL_URL}"
-    
+
     # Copy fixture files
     echo -e "${YELLOW}[Gitea Init] Copying psr-templates-fixture files...${NC}"
-    
+
     FIXTURE_ROOT="${REPO_ROOT}"
     if [ ! -f "${FIXTURE_ROOT}/Makefile" ] || [ ! -f "${FIXTURE_ROOT}/pyproject.toml" ]; then
         # Fallback search
@@ -83,7 +83,7 @@ CREDS
             fi
         done
     fi
-    
+
     if [ ! -f "${FIXTURE_ROOT}/Makefile" ]; then
         echo -e "${YELLOW}[Gitea Init] Warning: Could not locate fixture root, copying will be skipped${NC}"
     else
@@ -100,11 +100,11 @@ CREDS
             -type f \
             -exec bash -c 'mkdir -p "'"${WORK_DIR}"'/$(dirname "{}" | sed "s|^'"${FIXTURE_ROOT}"'/||")" && cp "{}" "'"${WORK_DIR}"'/$(echo "{}" | sed "s|^'"${FIXTURE_ROOT}"'/||")"' \;
     fi
-    
+
     # Create initial commit
     echo -e "${YELLOW}[Gitea Init] Creating initial commit...${NC}"
     git add -A
-    
+
     if [ -n "$(git status --porcelain)" ]; then
         git commit -m "Initial commit for ACT testing"
         echo -e "${GREEN}[Gitea Init] Initial commit created${NC}"
@@ -113,22 +113,22 @@ CREDS
         git commit --allow-empty -m "Initial empty commit for ACT testing"
         echo -e "${GREEN}[Gitea Init] Empty initial commit created${NC}"
     fi
-    
+
     # Push to Gitea using HTTP auth
     echo -e "${YELLOW}[Gitea Init] Pushing to remote: ${REPO_FULL_URL}...${NC}"
-    
+
     # Get current branch name
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
     echo -e "${YELLOW}[Gitea Init] Current branch: ${CURRENT_BRANCH}${NC}"
-    
+
     # Fetch first to see what's on remote
     echo -e "${YELLOW}[Gitea Init] Fetching from remote...${NC}"
     git fetch origin 2>&1 || echo -e "${YELLOW}[Gitea Init] Fetch returned non-zero (might be OK for empty repo)${NC}"
-    
+
     # Get the remote's default branch
     REMOTE_DEFAULT=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@.*/@@' || echo "main")
     echo -e "${YELLOW}[Gitea Init] Remote default branch: ${REMOTE_DEFAULT}${NC}"
-    
+
     # Try to push the current branch first
     if git push -u origin "${CURRENT_BRANCH}:${REMOTE_DEFAULT}" 2>&1; then
         echo -e "${GREEN}[Gitea Init] Successfully pushed ${CURRENT_BRANCH} to ${REMOTE_DEFAULT}${NC}"
@@ -147,9 +147,9 @@ CREDS
             fi
         fi
     fi
-    
+
     cd - > /dev/null
-    
+
     # Copy .git directory to workspace so subsequent jobs have a configured repo
     echo -e "${YELLOW}[Gitea Init] Setting up .git in workspace for subsequent jobs...${NC}"
     if [ -d "${WORK_DIR}/.git" ]; then
@@ -157,7 +157,7 @@ CREDS
         cp -r "${WORK_DIR}/.git" "${REPO_ROOT}/.git"
         echo -e "${GREEN}[Gitea Init] Workspace .git configured${NC}"
     fi
-    
+
     echo -e "${GREEN}[Gitea Init] Repository populated${NC}"
 }
 
@@ -174,29 +174,28 @@ main() {
         cleanup_repo
         return 0
     fi
-    
+
     # Check if we're in ACT mode
     if [ -z "${ACT}" ]; then
         echo -e "${YELLOW}[Gitea Init] Not running in ACT mode (ACT env var not set). Skipping initialization.${NC}"
         return 0
     fi
-    
+
     # Wait for gitea to be healthy
     if ! wait_for_gitea; then
         echo -e "${RED}[Gitea Init] Failed to connect to Gitea${NC}"
         return 1
     fi
-    
+
     # Initialize repository
     if ! init_repo; then
         echo -e "${RED}[Gitea Init] Failed to initialize repository${NC}"
         return 1
     fi
-    
+
     echo -e "${GREEN}[Gitea Init] Initialization complete!${NC}"
     echo -e "${GREEN}[Gitea Init] Git URL: ${REPO_FULL_URL}${NC}"
     echo -e "${GREEN}[Gitea Init] Repository available at: ${GITEA_URL}/${GITEA_ADMIN_USER}/${REPO_NAME}${NC}"
 }
 
 main "$@"
-

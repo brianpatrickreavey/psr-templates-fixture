@@ -11,6 +11,10 @@ concurrency:
   group: psr-test-harness-${{ github.repository }}
   cancel-in-progress: false
 
+env:
+  GITEA_USER: gitadmin
+  GITEA_PASS: gitadmin123
+
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -21,17 +25,13 @@ jobs:
         working-directory: ${{ github.workspace }}
     outputs:
       test_branch: ${{ steps.compute-branch.outputs.test_branch }}
-      gitea_url: ${{ steps.gitea-url.outputs.gitea_url }}
+      git_server_url: ${{ steps.git-config.outputs.server_url }}
+      git_owner_repo: ${{ steps.git-config.outputs.owner_repo }}
+      gitea_url: ${{ steps.git-config.outputs.gitea_url }}
+      gitea_token: ${{ steps.git-config.outputs.gitea_token }}
+      is_act: ${{ steps.git-config.outputs.is_act }}
     steps:
-      - name: Check if running in ACT (skip checkout if true)
-        run: |
-          if [ -n "$ACT" ]; then
-            echo "✓ Running in ACT mode - skipping checkout, already in repository"
-            exit 0
-          fi
-
-      - name: Checkout fixture repo (GitHub mode only)
-        if: success()
+      - name: Checkout fixture repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -47,22 +47,20 @@ jobs:
           fi
           echo "test_branch=${TEST_BRANCH}" >> $GITHUB_OUTPUT
 
-      - name: Compute gitea URL
-        id: gitea-url
+      - name: Compute git configuration
+        id: git-config
         run: |
           if [ -n "$ACT" ]; then
-            GIT_URL="http://localhost:3000/gitadmin"
-          else
-            GIT_URL="https://github.com/${{ github.repository_owner }}"
-          fi
-          echo "gitea_url=${GIT_URL}" >> $GITHUB_OUTPUT
-
-      - name: Detect ACT mode
-        id: detect-act
-        run: |
-          if [ -n "$ACT" ]; then
+            echo "server_url=http://localhost:3000" >> $GITHUB_OUTPUT
+            echo "owner_repo=gitadmin/test-repo" >> $GITHUB_OUTPUT
+            echo "gitea_url=http://localhost:3000/gitadmin" >> $GITHUB_OUTPUT
+            echo "gitea_token=86869cf1aed94bd121df9065bcbab473f2047802" >> $GITHUB_OUTPUT
             echo "is_act=true" >> $GITHUB_OUTPUT
           else
+            echo "server_url=https://github.com" >> $GITHUB_OUTPUT
+            echo "owner_repo=${{ github.repository }}" >> $GITHUB_OUTPUT
+            echo "gitea_url=https://github.com/${{ github.repository_owner }}" >> $GITHUB_OUTPUT
+            echo "gitea_token=" >> $GITHUB_OUTPUT
             echo "is_act=false" >> $GITHUB_OUTPUT
           fi
 
@@ -75,43 +73,11 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     steps:
-      - name: Detect ACT mode
-        id: detect-act
-        run: |
-          if [ -n "$ACT" ]; then
-            echo "is_act=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_act=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Checkout fixture repo (GitHub mode)
-        if: steps.detect-act.outputs.is_act == 'false'
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          repository: ${{ github.repository }}
-
-      - name: Clone from Gitea (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git config --global credential.helper store
-          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b main http://localhost:3000/gitadmin/test-repo.git .
-
-      - name: Debug - List workspace contents (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          echo "=== Workspace root ==="
-          ls -la
-          echo ""
-          echo "=== .github directory ==="
-          ls -la .github 2>&1 || echo ".github not found"
-          echo ""
-          echo "=== .github/actions directory ==="
-          ls -la .github/actions 2>&1 || echo ".github/actions not found"
-          echo ""
-          echo "=== Git status ==="
-          git status
+          repository: brianpatrickreavey/psr-templates-fixture
+          fetch-depth: 25
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -126,6 +92,9 @@ jobs:
         uses: ./.github/actions/create-test-branch
         with:
           test_branch: ${{ needs.setup.outputs.test_branch }}
+          git_server_url: ${{ needs.setup.outputs.git_server_url }}
+          git_owner_repo: ${{ needs.setup.outputs.git_owner_repo }}
+          git_token: ${{ needs.setup.outputs.gitea_token }}
 
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
@@ -143,35 +112,14 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Detect ACT mode
-        id: detect-act
-        run: |
-          if [ -n "$ACT" ]; then
-            echo "is_act=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_act=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Checkout test branch (GitHub mode)
-        if: steps.detect-act.outputs.is_act == 'false'
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}
+          repository: ${{ needs.setup.outputs.git_owner_repo }}
           ref: ${{ needs.setup.outputs.test_branch }}
-          fetch-depth: 0
-
-      - name: Clone from Gitea (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git config --global credential.helper store
-          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b main http://localhost:3000/gitadmin/test-repo.git .
-
-      - name: Checkout test branch (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git fetch origin ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
-          git checkout ${{ needs.setup.outputs.test_branch }} || echo "Test branch not found, staying on main"
+          token: ${{ needs.setup.outputs.gitea_token || secrets.GITHUB_TOKEN }}
+          github-server-url: ${{ needs.setup.outputs.git_server_url }}
+          fetch-depth: 25
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -198,11 +146,11 @@ jobs:
         id: psr
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ github.event.act && 'act' || 'github' }}
+          mode: ${{ needs.setup.outputs.is_act == 'true' && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ !github.event.act && steps.psr.outputs.tag }}
+        if: ${{ needs.setup.outputs.is_act == 'false' && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
@@ -236,35 +184,14 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Detect ACT mode
-        id: detect-act
-        run: |
-          if [ -n "$ACT" ]; then
-            echo "is_act=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_act=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Checkout test branch (GitHub mode)
-        if: steps.detect-act.outputs.is_act == 'false'
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}
+          repository: ${{ needs.setup.outputs.git_owner_repo }}
           ref: ${{ needs.setup.outputs.test_branch }}
-          fetch-depth: 0
-
-      - name: Clone from Gitea (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git config --global credential.helper store
-          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b main http://localhost:3000/gitadmin/test-repo.git .
-
-      - name: Checkout test branch (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git fetch origin ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
-          git checkout ${{ needs.setup.outputs.test_branch }} || echo "Test branch not found, staying on main"
+          token: ${{ needs.setup.outputs.gitea_token || secrets.GITHUB_TOKEN }}
+          github-server-url: ${{ needs.setup.outputs.git_server_url }}
+          fetch-depth: 25
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -291,11 +218,11 @@ jobs:
         id: psr
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ github.event.act && 'act' || 'github' }}
+          mode: ${{ needs.setup.outputs.is_act == 'true' && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ !github.event.act && steps.psr.outputs.tag }}
+        if: ${{ needs.setup.outputs.is_act == 'false' && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
@@ -329,35 +256,14 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Detect ACT mode
-        id: detect-act
-        run: |
-          if [ -n "$ACT" ]; then
-            echo "is_act=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_act=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Checkout test branch (GitHub mode)
-        if: steps.detect-act.outputs.is_act == 'false'
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}
+          repository: ${{ needs.setup.outputs.git_owner_repo }}
           ref: ${{ needs.setup.outputs.test_branch }}
-          fetch-depth: 0
-
-      - name: Clone from Gitea (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git config --global credential.helper store
-          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b main http://localhost:3000/gitadmin/test-repo.git .
-
-      - name: Checkout test branch (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git fetch origin ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
-          git checkout ${{ needs.setup.outputs.test_branch }} || echo "Test branch not found, staying on main"
+          token: ${{ needs.setup.outputs.gitea_token || secrets.GITHUB_TOKEN }}
+          github-server-url: ${{ needs.setup.outputs.git_server_url }}
+          fetch-depth: 25
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -384,12 +290,12 @@ jobs:
         id: psr
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ github.event.act && 'act' || 'github' }}
+          mode: ${{ needs.setup.outputs.is_act == 'true' && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           force: major
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ !github.event.act && steps.psr.outputs.tag }}
+        if: ${{ needs.setup.outputs.is_act == 'false' && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
@@ -423,35 +329,14 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Detect ACT mode
-        id: detect-act
-        run: |
-          if [ -n "$ACT" ]; then
-            echo "is_act=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_act=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Checkout test branch (GitHub mode)
-        if: steps.detect-act.outputs.is_act == 'false'
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}
+          repository: ${{ needs.setup.outputs.git_owner_repo }}
           ref: ${{ needs.setup.outputs.test_branch }}
-          fetch-depth: 0
-
-      - name: Clone from Gitea (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git config --global credential.helper store
-          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b main http://localhost:3000/gitadmin/test-repo.git .
-
-      - name: Checkout test branch (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git fetch origin ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
-          git checkout ${{ needs.setup.outputs.test_branch }} || echo "Test branch not found, staying on main"
+          token: ${{ needs.setup.outputs.gitea_token || secrets.GITHUB_TOKEN }}
+          github-server-url: ${{ needs.setup.outputs.git_server_url }}
+          fetch-depth: 25
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -478,11 +363,11 @@ jobs:
         id: psr
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ github.event.act && 'act' || 'github' }}
+          mode: ${{ needs.setup.outputs.is_act == 'true' && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ !github.event.act && steps.psr.outputs.tag }}
+        if: ${{ needs.setup.outputs.is_act == 'false' && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
@@ -516,35 +401,14 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
-      - name: Detect ACT mode
-        id: detect-act
-        run: |
-          if [ -n "$ACT" ]; then
-            echo "is_act=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_act=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Checkout test branch (GitHub mode)
-        if: steps.detect-act.outputs.is_act == 'false'
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}
+          repository: ${{ needs.setup.outputs.git_owner_repo }}
           ref: ${{ needs.setup.outputs.test_branch }}
-          fetch-depth: 0
-
-      - name: Clone from Gitea (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git config --global credential.helper store
-          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b main http://localhost:3000/gitadmin/test-repo.git .
-
-      - name: Checkout test branch (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git fetch origin ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
-          git checkout ${{ needs.setup.outputs.test_branch }} || echo "Test branch not found, staying on main"
+          token: ${{ needs.setup.outputs.gitea_token || secrets.GITHUB_TOKEN }}
+          github-server-url: ${{ needs.setup.outputs.git_server_url }}
+          fetch-depth: 25
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -571,11 +435,11 @@ jobs:
         id: psr
         uses: ./.github/actions/run-psr
         with:
-          mode: ${{ github.event.act && 'act' || 'github' }}
+          mode: ${{ needs.setup.outputs.is_act == 'true' && 'act' || 'github' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload CHANGELOG (GitHub only)
-        if: ${{ !github.event.act && steps.psr.outputs.tag }}
+        if: ${{ needs.setup.outputs.is_act == 'false' && steps.psr.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
@@ -603,40 +467,19 @@ jobs:
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
-      PSR_VALIDATE_REAL: ${{ github.event.act && '0' || '1' }}
+      PSR_VALIDATE_REAL: ${{ needs.setup.outputs.is_act == 'false' && '1' || '0' }}
     defaults:
       run:
         working-directory: ${{ github.workspace }}
     steps:
-      - name: Detect ACT mode
-        id: detect-act
-        run: |
-          if [ -n "$ACT" ]; then
-            echo "is_act=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_act=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Checkout test branch (GitHub mode)
-        if: steps.detect-act.outputs.is_act == 'false'
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}
+          repository: ${{ needs.setup.outputs.git_owner_repo }}
           ref: ${{ needs.setup.outputs.test_branch }}
-          fetch-depth: 0
-
-      - name: Clone from Gitea (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git config --global credential.helper store
-          echo "http://gitadmin:gitadmin123@localhost:3000" >> ~/.git-credentials
-          git clone -b main http://localhost:3000/gitadmin/test-repo.git .
-
-      - name: Checkout test branch (ACT mode)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: |
-          git fetch origin ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
-          git checkout ${{ needs.setup.outputs.test_branch }} || echo "Test branch not found, staying on main"
+          token: ${{ needs.setup.outputs.gitea_token || secrets.GITHUB_TOKEN }}
+          github-server-url: ${{ needs.setup.outputs.git_server_url }}
+          fetch-depth: 25
 
       - name: Install uv
         uses: ./.github/actions/install-uv
@@ -646,9 +489,6 @@ jobs:
 
       - name: Install dev dependencies
         uses: ./.github/actions/install-dev-dependencies
-
-      - name: Switch to test branch
-        run: git checkout ${{ needs.setup.outputs.test_branch }} 2>/dev/null || true
 
       - name: Run post-PSR tests
         uses: ./.github/actions/run-post-psr-tests
@@ -668,8 +508,8 @@ jobs:
   #       Controlled by cleanup_after flag in dispatch payload (default: true).
   #       For ACT mode: Use `make clean-tags-and-releases` Makefile target instead.
   cleanup:
-    needs: [post-release-tests]
-    if: ${{ !github.event.act && github.event.client_payload.cleanup_after && always() }}
+    needs: [setup, post-release-tests]
+    if: ${{ needs.setup.outputs.is_act == 'false' && github.event.client_payload.cleanup_after && always() }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

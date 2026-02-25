@@ -1,7 +1,7 @@
 # ACT Gitea Local Testing Plan
 
-**Status:** Implementation in progress  
-**Last Updated:** 2026-02-20  
+**Status:** Implementation in progress
+**Last Updated:** 2026-02-20
 **Objective:** Enable local testing with `act` using a lightweight gitea service, eliminating GitHub artifact pollution and enabling true local CI/CD testing with persistent git state across 5 release phases.
 
 ---
@@ -24,7 +24,7 @@ This plan implements **Option 1: Lightweight Git Server in ACT** to address the 
 ## Auth & Git URL Strategy
 
 - **GitHub mode:** Uses `GITHUB_TOKEN` + `https://github.com/...` (unchanged)
-- **ACT mode:** Uses anonymous gitea + `http://localhost:gitea/...` 
+- **ACT mode:** Uses anonymous gitea + `http://localhost:gitea/...`
 - **Detection:** Environment variable `GIT_URL` set conditionally on `${{ env.ACT }}` in workflow
 - **Conditionals scope:** Only 2-3 action files need changes; workflow sets env var once
 - **No widespread changes:** Git URL is swapped in git push operations only
@@ -45,7 +45,7 @@ This plan implements **Option 1: Lightweight Git Server in ACT** to address the 
 
 ### A1. Create `.actrc` configuration file
 
-**File:** Root of psr-templates-fixture (`.actrc`)  
+**File:** Root of psr-templates-fixture (`.actrc`)
 **Purpose:** Configure act runner to include gitea service container
 
 **Deliverables:**
@@ -65,7 +65,7 @@ This plan implements **Option 1: Lightweight Git Server in ACT** to address the 
 
 ### A2. Create gitea initialization script
 
-**File:** `tools/init-gitea.sh` (psr-templates-fixture)  
+**File:** `tools/init-gitea.sh` (psr-templates-fixture)
 **Purpose:** Initialize gitea repo with psr-templates-fixture files on startup
 
 **Deliverables:**
@@ -87,7 +87,7 @@ This plan implements **Option 1: Lightweight Git Server in ACT** to address the 
 
 ### A3. Add infrastructure to test-harness.yml
 
-**File:** `.github/workflows/test-harness.yml` (psr-templates-fixture)  
+**File:** `.github/workflows/test-harness.yml` (psr-templates-fixture)
 **Purpose:** Integrate gitea service and environment setup into workflow
 
 **Deliverables:**
@@ -118,7 +118,7 @@ This plan implements **Option 1: Lightweight Git Server in ACT** to address the 
 
 ### B1. Update generate-and-push-commits action
 
-**File:** `.github/actions/generate-and-push-commits/action.yml` (psr-templates-fixture)  
+**File:** `.github/actions/generate-and-push-commits/action.yml` (psr-templates-fixture)
 **Purpose:** Accept git-url input; use it instead of hardcoded GitHub
 
 **Deliverables:**
@@ -139,7 +139,7 @@ This plan implements **Option 1: Lightweight Git Server in ACT** to address the 
 
 ### B2. Update run-psr action
 
-**File:** `.github/actions/run-psr/action.yml` (psr-templates-fixture)  
+**File:** `.github/actions/run-psr/action.yml` (psr-templates-fixture)
 **Purpose:** Accept git-url input; use in both ACT and GitHub modes
 
 **Deliverables:**
@@ -164,7 +164,7 @@ This plan implements **Option 1: Lightweight Git Server in ACT** to address the 
 
 ### B3. Wire git-url into test-harness.yml
 
-**File:** `.github/workflows/test-harness.yml` (psr-templates-fixture)  
+**File:** `.github/workflows/test-harness.yml` (psr-templates-fixture)
 **Purpose:** Pass git-url env var to all action calls
 
 **Deliverables:**
@@ -194,7 +194,7 @@ This plan implements **Option 1: Lightweight Git Server in ACT** to address the 
 
 ### C1. Update phase count in generate_commits.py
 
-**File:** `tools/generate_commits.py` (psr-templates-fixture)  
+**File:** `tools/generate_commits.py` (psr-templates-fixture)
 **Purpose:** Document that there are 5 phases, not 3
 
 **Deliverables:**
@@ -214,7 +214,7 @@ This plan implements **Option 1: Lightweight Git Server in ACT** to address the 
 
 ### C2. Update test-harness.yml inline documentation
 
-**File:** `.github/workflows/test-harness.yml` (psr-templates-fixture)  
+**File:** `.github/workflows/test-harness.yml` (psr-templates-fixture)
 **Purpose:** Self-document the workflow structure
 
 **Deliverables:**
@@ -236,7 +236,7 @@ This plan implements **Option 1: Lightweight Git Server in ACT** to address the 
 
 ### C3. Update architecture.md in psr-templates
 
-**File:** `docs/development/architecture.md` (psr-templates)  
+**File:** `docs/development/architecture.md` (psr-templates)
 **Purpose:** Reflect current 5-phase design and ACT testing approach
 
 **Deliverables:**
@@ -261,7 +261,7 @@ This plan implements **Option 1: Lightweight Git Server in ACT** to address the 
 
 ### C4. Update environment.md in psr-templates
 
-**File:** `docs/development/environment.md` (psr-templates)  
+**File:** `docs/development/environment.md` (psr-templates)
 **Purpose:** Guide developers to run ACT locally
 
 **Deliverables:**
@@ -455,6 +455,6 @@ act --file .github/workflows/test-harness.yml -j test-release --verbose
 
 ---
 
-**Implementation Owner:** GitHub Copilot  
-**Start Date:** 2026-02-20  
+**Implementation Owner:** GitHub Copilot
+**Start Date:** 2026-02-20
 **Target Completion:** 2026-02-20 (same day)
