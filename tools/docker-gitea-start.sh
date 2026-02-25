@@ -157,6 +157,12 @@ echo ""
 # Populate repository with fixture files via mirror clone
 echo "9b. Populating repository with fixture files..."
 
+# Clean up old test tags from the fixture repo before cloning
+# These would be left from previous test runs and would cause push conflicts
+cd "${FIXTURE_ROOT}"
+git tag -d $(git tag | grep -E '^v0\.|^v1\.') 2>/dev/null || true
+cd - > /dev/null
+
 # Capture script directory BEFORE changing directories
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 FIXTURE_ROOT="$(dirname "${SCRIPT_DIR}")"

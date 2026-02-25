@@ -51,6 +51,9 @@ jobs:
           fi
           echo "test_branch=${TEST_BRANCH}" >> $GITHUB_OUTPUT
 
+      - name: Test action (for debugging Gitea population)
+        uses: ./.github/actions/test-hello
+
   pre-release-tests:
     runs-on: ubuntu-latest
     needs: setup
