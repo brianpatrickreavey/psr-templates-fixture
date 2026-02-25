@@ -118,7 +118,7 @@ ci-simulate-consolidated-gitea:
 	  -e .act/event.json \
 	  --container-architecture linux/amd64 \
 	  --env ACT_RUN_ID="act-test-run-$$timestamp" \
-	  --env GITEA_TOKEN="$$gitea_token" \
+	  --secret GITHUB_TOKEN="$$gitea_token" \
 	  | tee .artifacts/$$timestamp/ci-simulate-consolidated-gitea.log; \
 	exit_code=$$?; \
 	make stop-gitea; \
