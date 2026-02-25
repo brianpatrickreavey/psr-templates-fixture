@@ -110,24 +110,30 @@ init_repo() {
     # Push to Gitea using HTTP auth
     echo -e "${YELLOW}[Gitea Init] Pushing to remote: ${REPO_FULL_URL}...${NC}"
     
-    # Fetch first to sync with remote (test-repo already has initial commit from API)
-    echo -e "${YELLOW}[Gitea Init] Fetching from remote...${NC}"
-    if ! git fetch origin main 2>&1; then
-        echo -e "${YELLOW}[Gitea Init] Remote doesn't have main yet (empty repo)${NC}"
-    fi
+    # Get current branch name
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    echo -e "${YELLOW}[Gitea Init] Current branch: ${CURRENT_BRANCH}${NC}"
     
-    # Try to push main branch
-    if git push -u origin main 2>&1; then
-        echo -e "${GREEN}[Gitea Init] Successfully pushed to main${NC}"
+    # Fetch first to see what's on remote
+    echo -e "${YELLOW}[Gitea Init] Fetching from remote...${NC}"
+    git fetch origin 2>&1 || echo -e "${YELLOW}[Gitea Init] Fetch returned non-zero (might be OK for empty repo)${NC}"
+    
+    # Get the remote's default branch
+    REMOTE_DEFAULT=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@.*/@@' || echo "main")
+    echo -e "${YELLOW}[Gitea Init] Remote default branch: ${REMOTE_DEFAULT}${NC}"
+    
+    # Try to push the current branch first
+    if git push -u origin "${CURRENT_BRANCH}:${REMOTE_DEFAULT}" 2>&1; then
+        echo -e "${GREEN}[Gitea Init] Successfully pushed ${CURRENT_BRANCH} to ${REMOTE_DEFAULT}${NC}"
     else
-        # If main push failed, try master branch
-        echo -e "${YELLOW}[Gitea Init] main branch push failed, trying master...${NC}"
-        if git push -u origin master 2>&1; then
-            echo -e "${GREEN}[Gitea Init] Successfully pushed to master${NC}"
+        # If that failed, try simple push of current branch
+        if git push -u origin "${CURRENT_BRANCH}" 2>&1; then
+            echo -e "${GREEN}[Gitea Init] Successfully pushed ${CURRENT_BRANCH}${NC}"
         else
-            echo -e "${YELLOW}[Gitea Init] Direct push failed, trying force push to main...${NC}"
-            if git push -f -u origin main 2>&1; then
-                echo -e "${GREEN}[Gitea Init] Successfully force pushed to main${NC}"
+            # Last resort: force push
+            echo -e "${YELLOW}[Gitea Init] Push failed, trying force push...${NC}"
+            if git push -f -u origin "${CURRENT_BRANCH}" 2>&1; then
+                echo -e "${GREEN}[Gitea Init] Successfully force pushed ${CURRENT_BRANCH}${NC}"
             else
                 echo -e "${RED}[Gitea Init] ERROR: Failed to push to repository${NC}"
                 return 1
