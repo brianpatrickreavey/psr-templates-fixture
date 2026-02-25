@@ -66,10 +66,6 @@ jobs:
             echo "is_act=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Start Gitea server (ACT mode only)
-        if: steps.detect-act.outputs.is_act == 'true'
-        run: make start-gitea
-
       - name: Initialize gitea repository (ACT mode only)
         if: steps.detect-act.outputs.is_act == 'true'
         run: bash ./tools/init-gitea.sh

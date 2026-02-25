@@ -10,8 +10,15 @@ GITEA_DATA_DIR="/tmp/gitea-data"
 REPO_NAME="test-repo"
 
 # Get current user's UID and GID for proper file ownership
+# If running as root (UID 0), use a non-root UID instead (Gitea won't run as root)
 CURRENT_UID=$(id -u)
-CURRENT_GID=$(id -g)
+if [ "$CURRENT_UID" -eq 0 ]; then
+  GITEA_UID=1000
+  GITEA_GID=1000
+else
+  GITEA_UID=$CURRENT_UID
+  GITEA_GID=$(id -g)
+fi
 
 echo "=== Docker Gitea Bootstrap Script ==="
 echo ""
@@ -49,8 +56,8 @@ docker run -d \
   -p ${GITEA_PORT}:3000 \
   -p 2222:22 \
   -v ${GITEA_DATA_DIR}:/data \
-  -e USER_UID=${CURRENT_UID} \
-  -e USER_GID=${CURRENT_GID} \
+  -e USER_UID=${GITEA_UID} \
+  -e USER_GID=${GITEA_GID} \
   -e GITEA__security__INSTALL_LOCK=true \
   gitea/gitea:latest > /dev/null
 echo "   ✓ Container started (ID: $(docker ps --filter name=${GITEA_CONTAINER} -q))"
