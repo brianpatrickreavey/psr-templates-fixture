@@ -98,8 +98,7 @@ jobs:
           git describe --tags --abbrev=0 || echo "No tags found"
           echo ""
           echo "=== Phase config (from phase-config.json) ==="
-          PHASE_INDEX=$((${{ inputs.phase }} - 1))
-          cat .github/workflows/phase-config.json | jq ".phases[$PHASE_INDEX]"
+          cat .github/workflows/phase-config.json | jq ".phases[\"${{ inputs.phase }}\"]"
           echo ""
           echo "=== Steps output version ==="
           echo "Version from steps.phase-config.outputs.version: ${{ steps.phase-config.outputs.version }}"
