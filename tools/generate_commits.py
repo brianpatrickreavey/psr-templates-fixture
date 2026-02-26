@@ -4,25 +4,25 @@ Generate deterministic test commits for PSR template testing.
 
 Supports 5 phases of version progression to test semantic versioning behavior:
 
-  Phase 1: Features
-    - Commits: 2 feature commits
+  Phase 1: Pure Features
+    - Commits: 2× feat
     - Expected Version: 0.1.0 (minor bump)
 
-  Phase 2: Bug Fixes
-    - Commits: 2 fix commits
-    - Expected Version: 0.1.1 (patch bump)
+  Phase 2: Mixed (Fix + Feature)
+    - Commits: 1× fix, 1× feat
+    - Expected Version: 0.2.0 (feature takes precedence over fix)
 
-  Phase 3: Major Features
-    - Commits: 2 feature commits
-    - Expected Version: 1.0.0 (forced major bump)
+  Phase 3: Mixed (Fix + Feature) with Force Major
+    - Commits: 1× fix, 1× feat
+    - Expected Version: 1.0.0 (force major overrides semver)
 
-  Phase 4: Documentation
-    - Commits: 2 documentation commits
+  Phase 4: Pure Documentation
+    - Commits: 2× docs
     - Expected Version: 1.0.0 (no version change, docs only)
 
-  Phase 5: Bug Fixes (Post-Major)
-    - Commits: 2 fix commits
-    - Expected Version: 1.0.1 (patch bump)
+  Phase 5: Mixed (Fix + Docs)
+    - Commits: 1× fix, 1× docs
+    - Expected Version: 1.0.1 (fix takes precedence over docs)
 
 All commits include " (ci-test-run)" marker for changelog exclusion during testing.
 
@@ -54,33 +54,33 @@ def create_commit(message, cwd=None):
 
 def phase_1_features(repo_path):
     """Phase 1: Features → 0.1.0 (minor bump)."""
-    print("Phase 1: Features")
+    print("Phase 1: Pure Features")
     create_commit('feat: [PHASE-1] add user authentication system', cwd=repo_path)
     create_commit('feat: [PHASE-1] implement data caching layer', cwd=repo_path)
 
-def phase_2_bugfixes(repo_path):
-    """Phase 2: Bug fixes → 0.1.1 (patch bump)."""
-    print("Phase 2: Bug fixes")
+def phase_2_mixed(repo_path):
+    """Phase 2: Mixed commits → 0.2.0 (feat > fix, so minor bump)."""
+    print("Phase 2: Mixed (Fix + Feature) - feature takes precedence")
     create_commit('fix: [PHASE-2] resolve null pointer exception', cwd=repo_path)
-    create_commit('fix: [PHASE-2] fix race condition in thread pool', cwd=repo_path)
+    create_commit('feat: [PHASE-2] add request rate limiting', cwd=repo_path)
 
-def phase_3_features_major(repo_path):
-    """Phase 3: Features with --force major → 1.0.0."""
-    print("Phase 3: Features (will force major)")
+def phase_3_mixed_major(repo_path):
+    """Phase 3: Mixed with --force major → 1.0.0."""
+    print("Phase 3: Mixed (Fix + Feature) with force major")
+    create_commit('fix: [PHASE-3] correct database query', cwd=repo_path)
     create_commit('feat: [PHASE-3] redesign API endpoints', cwd=repo_path)
-    create_commit('feat: [PHASE-3] restructure database schema', cwd=repo_path)
 
 def phase_4_documentation(repo_path):
     """Phase 4: Documentation updates → 1.0.0 (no bump, no changelog)."""
-    print("Phase 4: Documentation updates")
+    print("Phase 4: Pure Documentation")
     create_commit('docs: [PHASE-4] update API documentation', cwd=repo_path)
     create_commit('docs: [PHASE-4] improve README examples', cwd=repo_path)
 
-def phase_5_bugfixes(repo_path):
-    """Phase 5: Bug fixes → 1.0.1 (patch bump)."""
-    print("Phase 5: Bug fixes")
+def phase_5_mixed_fix_docs(repo_path):
+    """Phase 5: Mixed fix + docs → 1.0.1 (fix takes precedence over docs)."""
+    print("Phase 5: Mixed (Fix + Docs) - fix takes precedence")
     create_commit('fix: [PHASE-5] correct sorting order in results', cwd=repo_path)
-    create_commit('fix: [PHASE-5] handle edge case in validation', cwd=repo_path)
+    create_commit('docs: [PHASE-5] clarify installation steps', cwd=repo_path)
 
 def main():
     # Parse arguments
@@ -145,10 +145,10 @@ def main():
     # Run requested phases
     phases = {
         1: phase_1_features,
-        2: phase_2_bugfixes,
-        3: phase_3_features_major,
+        2: phase_2_mixed,
+        3: phase_3_mixed_major,
         4: phase_4_documentation,
-        5: phase_5_bugfixes,
+        5: phase_5_mixed_fix_docs,
     }
 
     if run_all:

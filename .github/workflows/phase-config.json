@@ -9,13 +9,13 @@
     "2": {
       "version": "v0.2.0",
       "title": "Second Release",
-      "description": "Bug fixes - minor bump",
+      "description": "Mixed commits (fix + feat) - verify feature takes precedence",
       "force": null
     },
     "3": {
       "version": "v1.0.0",
       "title": "Major Version",
-      "description": "Major features - force major bump",
+      "description": "Mixed commits (fix + feat) - force major override",
       "force": "major"
     },
     "4": {
@@ -27,7 +27,7 @@
     "5": {
       "version": "v1.0.1",
       "title": "Patch Release",
-      "description": "Bug fixes - patch bump",
+      "description": "Mixed commits (fix + docs) - verify fix takes precedence",
       "force": null
     }
   }
