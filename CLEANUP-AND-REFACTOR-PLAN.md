@@ -1,6 +1,6 @@
 # Cleanup and Refactor Plan
 
-**Status:** In Progress - 2 of 3 tasks completed  
+**Status:** In Progress - 2 of 4 tasks completed  
 **Last Updated:** 2026-02-26
 
 ## Overview
@@ -13,7 +13,7 @@ Consolidation of remaining tasks after workflow refactoring and test harness sta
 
 ### 1. Refactor run-psr-phase.yml: Workflow → Composite Action
 
-**Status:** ✅ COMPLETED  
+**Status:** ✅ COMPLETED
 **Priority:** HIGH - Improves logging and architectural consistency
 **Completed:** 2026-02-26
 
@@ -47,7 +47,7 @@ Successfully converted `run-psr-phase.yml` from reusable workflow to composite a
 
 ### 2. Update architecture.md in psr-templates with 5-Phase Design
 
-**Status:** Not Started  
+**Status:** Not Started
 **Priority:** MEDIUM - Documentation completeness
 
 **What:**
@@ -73,7 +73,7 @@ Successfully converted `run-psr-phase.yml` from reusable workflow to composite a
 
 ### 3. Archive/Remove Obsolete Planning Documents
 
-**Status:** ✅ COMPLETED  
+**Status:** ✅ COMPLETED
 **Priority:** LOW - Cleanup
 **Completed:** 2026-02-26
 
@@ -86,6 +86,35 @@ Obsolete planning documents removed from repo root as part of earlier cleanup (c
 - TODO.md
 
 These were superseded by CLEANUP-AND-REFACTOR-PLAN.md which consolidates remaining tasks.
+
+---
+
+### 4. Consolidate Workflows
+
+**Status:** Not Started
+**Priority:** MEDIUM - Workflow organization
+
+**What:**
+1. Consolidate to single workflow: `test-harness-consolidated-with-gitea.yml` is now the default
+2. Delete obsolete workflows:
+   - `test-harness.yml` (original test harness)
+   - `test-harness-act.yml` (ACT-specific variant)
+   - `test-harness-consolidated.yml` (prior consolidation attempt)
+   - Check for any references/documentation before deletion
+3. Delete helper workflows (verify no active references):
+   - `test-hello.yml`
+   - `shell-test.yml`
+4. Rename/clean `test-harness-consolidated-with-gitea.yml`:
+   - Rename to `.github/workflows/test-harness.yml` (canonical name)
+   - Update workflow title from "PSR Template Test Harness (Consolidated with Gitea)" to "PSR Template Test Harness"
+   - Simplify comments - remove "consolidated" and "with-gitea" language (it's now the standard)
+
+**Acceptance Criteria:**
+- ✅ Single canonical workflow file (test-harness.yml)
+- ✅ All obsolete test workflows deleted
+- ✅ Helper workflows (test-hello, shell-test) deleted
+- ✅ No broken references in documentation or Makefiles
+- ✅ Workflow title reflects canonical status
 
 ---
 
@@ -106,6 +135,7 @@ Listed in old TODO.md, may address if time:
 1. **✅ COMPLETED:** Task 1 (Refactor composite) - Step names now clear in logs
 2. **NEXT:** Task 2 (Update docs) - Document 5-phase design in psr-templates architecture.md
 3. **✅ COMPLETED:** Task 3 (Archive) - Obsolete docs removed
+4. **PENDING:** Task 4 (Consolidate workflows) - Reduce workflow file clutter, establish canonical workflow
 
 ---
 
@@ -117,4 +147,6 @@ After completing all tasks:
 - [x] GitHub Actions run shows readable step names (TASK 1 ✅)
 - [ ] architecture.md reflects 5-phase design (TASK 2 - IN PROGRESS)
 - [x] Planning docs organized/archived (TASK 3 ✅)
+- [ ] Single canonical workflow file in place (TASK 4 - PENDING)
+- [ ] Obsolete workflow files deleted (TASK 4 - PENDING)
 - [x] No functionality broken (verified across both test runs)
