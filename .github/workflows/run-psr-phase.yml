@@ -33,6 +33,15 @@ jobs:
       tag: ${{ steps.psr.outputs.tag }}
       version: ${{ steps.psr.outputs.version }}
     steps:
+      - name: Checkout fixture repository from Gitea
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ inputs.test_branch }}
+          token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
+          github-server-url: ${{ inputs.git_server_url }}
+          fetch-depth: 25
+
       - name: Load phase configuration
         id: phase-config
         run: |
@@ -44,15 +53,6 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "title=$title" >> $GITHUB_OUTPUT
           echo "force=$force" >> $GITHUB_OUTPUT
-
-      - name: Checkout fixture repository from Gitea
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ${{ inputs.test_branch }}
-          token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
-          github-server-url: ${{ inputs.git_server_url }}
-          fetch-depth: 25
 
       - name: Install uv
         uses: ./.github/actions/install-uv
