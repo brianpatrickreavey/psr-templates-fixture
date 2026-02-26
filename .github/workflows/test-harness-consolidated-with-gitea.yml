@@ -59,16 +59,19 @@ jobs:
         run: |
           git checkout -b ${{ steps.compute-branch.outputs.test_branch }}
 
-      - name: Squash test branch commits into single commit
+      - name: Squash entire repo history into single commit
         run: |
-          # Squash all development commits into one clean commit
-          # This reduces PSR parse time by eliminating hundreds of test commits
-          git reset --soft origin/main
-          git commit -m "Test fixture setup for CI run ${{ github.event.client_payload.run_id }}"
+          # Squash all historical commits down to one clean commit
+          # This reduces PSR parse time by eliminating hundreds of accumulated repo commits
+          # The test branch is ephemeral, so we can rewrite history aggressively
+          FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
+          echo "Squashing all commits since root: $FIRST_COMMIT"
+          git reset --soft $FIRST_COMMIT
+          git commit -m "Squashed fixture repo history for CI testing"
 
       - name: Push test branch to remote
         run: |
-          git push -u origin ${{ steps.compute-branch.outputs.test_branch }}
+          git push -u origin ${{ steps.compute-branch.outputs.test_branch }} --force-with-lease
 
   pre-release-tests:
     runs-on: ubuntu-latest
