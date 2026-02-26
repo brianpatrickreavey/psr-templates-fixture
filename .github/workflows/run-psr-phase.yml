@@ -89,6 +89,21 @@ jobs:
           echo "=== Detailed commit messages (last 5) ==="
           git log --format="%H %s" -5
 
+      - name: Debug - Verify tag visibility and PSR starting point (Phase ${{ inputs.phase }})
+        run: |
+          echo "=== All tags ==="
+          git tag -l
+          echo ""
+          echo "=== Latest tag ==="
+          git describe --tags --abbrev=0 || echo "No tags found"
+          echo ""
+          echo "=== Phase config (from phase-config.json) ==="
+          PHASE_INDEX=$((${{ inputs.phase }} - 1))
+          cat .github/workflows/phase-config.json | jq ".phases[$PHASE_INDEX]"
+          echo ""
+          echo "=== Steps output version ==="
+          echo "Version from steps.phase-config.outputs.version: ${{ steps.phase-config.outputs.version }}"
+
       - name: Run PSR (Phase ${{ inputs.phase }} - ${{ steps.phase-config.outputs.title }})
         id: psr
         uses: ./.github/actions/run-psr
