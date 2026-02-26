@@ -90,6 +90,7 @@ jobs:
   phase-1:
     needs: [setup, pre-release-tests]
     uses: ./.github/workflows/run-psr-phase.yml
+    secrets: inherit
     with:
       phase: '1'
       test_branch: ${{ needs.setup.outputs.test_branch }}
@@ -99,6 +100,7 @@ jobs:
   phase-2:
     needs: [setup, phase-1]
     uses: ./.github/workflows/run-psr-phase.yml
+    secrets: inherit
     with:
       phase: '2'
       test_branch: ${{ needs.setup.outputs.test_branch }}
@@ -108,6 +110,7 @@ jobs:
   phase-3:
     needs: [setup, phase-2]
     uses: ./.github/workflows/run-psr-phase.yml
+    secrets: inherit
     with:
       phase: '3'
       test_branch: ${{ needs.setup.outputs.test_branch }}
@@ -117,6 +120,7 @@ jobs:
   phase-4:
     needs: [setup, phase-3]
     uses: ./.github/workflows/run-psr-phase.yml
+    secrets: inherit
     with:
       phase: '4'
       test_branch: ${{ needs.setup.outputs.test_branch }}
@@ -126,6 +130,7 @@ jobs:
   phase-5:
     needs: [setup, phase-4]
     uses: ./.github/workflows/run-psr-phase.yml
+    secrets: inherit
     with:
       phase: '5'
       test_branch: ${{ needs.setup.outputs.test_branch }}
