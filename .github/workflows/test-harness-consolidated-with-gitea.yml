@@ -41,6 +41,9 @@ jobs:
           token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
           github-server-url: ${{ steps.git-config.outputs.server_url }}
 
+      - name: Clean up stale tags and releases from previous runs
+        uses: ./.github/actions/consolidated-cleanup-tags-and-releases
+
       - name: Compute branch name
         id: compute-branch
         run: |
@@ -187,23 +190,11 @@ jobs:
     needs: [setup, post-release-tests]
     if: ${{ github.event.client_payload.cleanup_after && always() }}
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout fixture repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Delete test tags and releases
-        run: |
-          echo "Cleaning up test artifacts from GitHub..."
-          # Delete test tags (v0.1.0, v0.2.0, v1.0.0)
-          for tag in v0.1.0 v0.2.0 v1.0.0; do
-            gh api repos/${{ github.repository }}/git/refs/tags/$tag -X DELETE 2>/dev/null || echo "Tag $tag not found (already deleted)"
-          done
-          # Delete test releases
-          gh api repos/${{ github.repository }}/releases --jq '.[].id' | xargs -I {} gh api repos/${{ github.repository }}/releases/{} -X DELETE 2>/dev/null || echo "No releases to delete"
-          # Delete test branch
-          git push origin --delete ci/${{ github.event.client_payload.run_id }} 2>/dev/null || echo "Branch already deleted"
-          echo "Cleanup complete"
+      - name: Clean up test artifacts
+        uses: ./.github/actions/consolidated-cleanup-tags-and-releases
