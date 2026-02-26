@@ -4,16 +4,16 @@ description: Execute PSR for a single phase with phase-specific configuration
 inputs:
   phase:
     required: true
-    type: string
     description: 'Phase number (1-5)'
   test_branch:
     required: true
-    type: string
     description: 'Test branch name from setup'
   git_server_url:
     required: true
-    type: string
     description: 'Git server URL from setup'
+  github_token:
+    required: true
+    description: 'GitHub token for authentication'
 
 outputs:
   tag:
@@ -31,7 +31,7 @@ runs:
       with:
         repository: ${{ github.repository }}
         ref: ${{ inputs.test_branch }}
-        token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
+        token: ${{ env.GITEA_TOKEN || inputs.github_token }}
         github-server-url: ${{ inputs.git_server_url }}
         fetch-depth: 25
 
@@ -110,13 +110,13 @@ runs:
       uses: ./.github/actions/run-psr
       with:
         mode: ${{ env.GITEA_TOKEN && 'act' || 'github' }}
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ inputs.github_token }}
         force: ${{ steps.phase-config.outputs.force != 'null' && steps.phase-config.outputs.force || '' }}
 
     - name: Upload CHANGELOG (GitHub only)
       if: ${{ !env.GITEA_TOKEN && steps.psr.outputs.tag }}
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ inputs.github_token }}
       run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
       shell: bash
 
@@ -135,4 +135,4 @@ runs:
         version: ${{ steps.psr.outputs.version }}
         tag: ${{ steps.psr.outputs.tag }}
         phase: 'phase-${{ inputs.phase }}'
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ inputs.github_token }}

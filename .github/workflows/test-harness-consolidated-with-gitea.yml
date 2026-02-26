@@ -126,6 +126,7 @@ jobs:
           phase: '1'
           test_branch: ${{ needs.setup.outputs.test_branch }}
           git_server_url: ${{ needs.setup.outputs.git_server_url }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   # Phase 2: v0.2.0 (mixed fix+feat - tests feature precedence)
   phase-2:
@@ -150,6 +151,7 @@ jobs:
           phase: '2'
           test_branch: ${{ needs.setup.outputs.test_branch }}
           git_server_url: ${{ needs.setup.outputs.git_server_url }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   # Phase 3: v1.0.0 (mixed fix+feat + force major override)
   phase-3:
@@ -174,6 +176,7 @@ jobs:
           phase: '3'
           test_branch: ${{ needs.setup.outputs.test_branch }}
           git_server_url: ${{ needs.setup.outputs.git_server_url }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   # Phase 4: v1.0.0 (pure docs - tests no version change)
   phase-4:
@@ -198,6 +201,7 @@ jobs:
           phase: '4'
           test_branch: ${{ needs.setup.outputs.test_branch }}
           git_server_url: ${{ needs.setup.outputs.git_server_url }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   # Phase 5: v1.0.1 (mixed fix+docs - tests fix precedence)
   phase-5:
@@ -218,7 +222,8 @@ jobs:
         with:
           phase: '5'
           test_branch: ${{ needs.setup.outputs.test_branch }}
-          git_server_url: ${{ needs.setup.outputs.git_server_url }}  # Post-release tests
+          git_server_url: ${{ needs.setup.outputs.git_server_url }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}  # Post-release tests
   post-release-tests:
     needs: [setup, phase-1, phase-2, phase-3, phase-4, phase-5]
     runs-on: ubuntu-latest
