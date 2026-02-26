@@ -1,8 +1,10 @@
-name: PSR Template Test Harness (Consolidated)
+name: PSR Template Test Harness (Consolidated) (DEPRECATED - Use test-harness-consolidated-with-gitea.yml)
 
 on:
-  repository_dispatch:
-    types: [test-harness-run]
+  # Disabled: Use test-harness-consolidated-with-gitea.yml instead
+  # repository_dispatch:
+  #   types: [test-harness-run]
+  workflow_dispatch:
 
 permissions:
   contents: write

@@ -131,7 +131,7 @@ jobs:
       test_branch: ${{ needs.setup.outputs.test_branch }}
       git_server_url: ${{ needs.setup.outputs.git_server_url }}
 
-  # Post-release tests (both modes)
+  # Post-release tests
   post-release-tests:
     needs: [setup, phase-5]
     if: always()
