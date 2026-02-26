@@ -103,7 +103,7 @@ jobs:
       - name: Run pre-PSR integration tests
         uses: ./.github/actions/run-pre-psr-tests
 
-  # Phase 1: v0.1.0 (via reusable workflow)
+  # Phase 1: v0.1.0 (pure features - tests minor bump)
   phase-1:
     needs: [setup, pre-release-tests]
     uses: ./.github/workflows/run-psr-phase.yml
@@ -113,7 +113,7 @@ jobs:
       test_branch: ${{ needs.setup.outputs.test_branch }}
       git_server_url: ${{ needs.setup.outputs.git_server_url }}
 
-  # Phase 2: v0.2.0 (via reusable workflow)
+  # Phase 2: v0.2.0 (mixed fix+feat - tests feature precedence)
   phase-2:
     needs: [setup, phase-1]
     uses: ./.github/workflows/run-psr-phase.yml
@@ -123,7 +123,7 @@ jobs:
       test_branch: ${{ needs.setup.outputs.test_branch }}
       git_server_url: ${{ needs.setup.outputs.git_server_url }}
 
-  # Phase 3: v1.0.0 (force major - via reusable workflow)
+  # Phase 3: v1.0.0 (mixed fix+feat + force major override)
   phase-3:
     needs: [setup, phase-2]
     uses: ./.github/workflows/run-psr-phase.yml
@@ -133,7 +133,7 @@ jobs:
       test_branch: ${{ needs.setup.outputs.test_branch }}
       git_server_url: ${{ needs.setup.outputs.git_server_url }}
 
-  # Phase 4: v1.0.0 (docs only - via reusable workflow)
+  # Phase 4: v1.0.0 (pure docs - tests no version change)
   phase-4:
     needs: [setup, phase-3]
     uses: ./.github/workflows/run-psr-phase.yml
@@ -143,7 +143,7 @@ jobs:
       test_branch: ${{ needs.setup.outputs.test_branch }}
       git_server_url: ${{ needs.setup.outputs.git_server_url }}
 
-  # Phase 5: v1.0.1 (via reusable workflow)
+  # Phase 5: v1.0.1 (mixed fix+docs - tests fix precedence)
   phase-5:
     needs: [setup, phase-4]
     uses: ./.github/workflows/run-psr-phase.yml

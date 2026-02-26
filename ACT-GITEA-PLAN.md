@@ -199,11 +199,13 @@ This plan implements **Option 1: Lightweight Git Server in ACT** to address the 
 
 **Deliverables:**
 - Docstring/comment update: "5 phases (Phase 1 through Phase 5)"
-- If code has phase definitions, verify they align with workflow:
-  - Phase 1: feat commits → v0.1.0
-  - Phase 2: fix commits → v0.1.1 (or v0.2.0 depending on structure)
-  - Phase 3–5: Additional feat/fix/breaking changes showing version progression
-- Comments clear about what each phase adds
+- Code has phase definitions that align with workflow:
+  - Phase 1: 2× feat commits → v0.1.0
+  - Phase 2: 1× fix + 1× feat commits → v0.2.0 (feature takes precedence)
+  - Phase 3: 1× fix + 1× feat commits + force major → v1.0.0
+  - Phase 4: 2× docs commits → v1.0.0 (no bump)
+  - Phase 5: 1× fix + 1× docs commits → v1.0.1 (fix takes precedence)
+- Comments clear about what each phase validates (semver precedence, force override, changelog filtering)
 
 **Implementation notes:**
 - Check if `--phase` argument is documented
