@@ -116,7 +116,7 @@ Successfully consolidated to single canonical workflow. Deleted 6 obsolete workf
 2. ✅ Renamed test-harness-consolidated-with-gitea.yml → test-harness.yml
 3. ✅ Updated workflow title to canonical: "PSR Template Test Harness"
 4. ✅ Updated references:
-   - Fixture Makefile: Updated ci-simulate-consolidated-gitea target, removed obsolete ci-simulate and ci-simulate-consolidated targets
+   - Fixture Makefile: Simplified to `ci-simulate` target (removed `-consolidated-gitea` suffix), removed obsolete ci-simulate-consolidated target
    - psr-templates Makefile: Updated 3 workflow references to new canonical name
    - Documentation: Updated testing.md, environment.md with correct test commands
    - Prompt files: Updated to reference canonical workflow
@@ -125,7 +125,7 @@ Successfully consolidated to single canonical workflow. Deleted 6 obsolete workf
 **Key Changes:**
 - Before: 6 workflow files (test-harness.yml, test-harness-act.yml, test-harness-consolidated.yml, test-harness-consolidated-with-gitea.yml, test-hello.yml, shell-test.yml, plus backup)
 - After: 2 workflow files (cleanup.yml for utility, test-harness.yml for main testing)
-- Single source of truth: test-harness.yml for local (via `make ci-simulate-consolidated-gitea`) and GitHub Actions (via dispatch)
+- Single source of truth: test-harness.yml for local (via `make ci-simulate`) and GitHub Actions (via dispatch)
 
 **Acceptance Criteria Met:**
 - ✅ Single canonical workflow file (test-harness.yml) established

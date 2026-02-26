@@ -1,4 +1,4 @@
-.PHONY: ci-simulate-consolidated-gitea start-gitea restart-gitea stop-gitea clean-tags clean-releases clean-tags-and-releases clean test unzip-artifacts
+.PHONY: ci-simulate start-gitea restart-gitea stop-gitea clean-tags clean-releases clean-tags-and-releases clean test unzip-artifacts
 
 # Gitea configuration
 GITEA_CONTAINER = act-gitea-local
@@ -54,7 +54,7 @@ populate-gitea:
 	@bash ./tools/populate-gitea.sh
 
 # Simulate CI with test harness workflow (local Gitea server for 5-phase testing)
-ci-simulate-consolidated-gitea:
+ci-simulate:
 	@timestamp=$$(date +%Y%m%d-%H%M%S); \
 	mkdir -p .artifacts/$$timestamp; \
 	echo "Starting Gitea and capturing credentials..."; \

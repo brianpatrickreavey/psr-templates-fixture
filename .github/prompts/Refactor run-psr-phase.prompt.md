@@ -136,7 +136,7 @@ phase-1:
 
 ```bash
 cd /home/bpreavey/Code/psr-templates-fixture
-make clean-gitea && sleep 2 && make ci-simulate-consolidated-gitea 2>&1 | tee refactor-test.log
+make clean-gitea && sleep 2 && make ci-simulate 2>&1 | tee refactor-test.log
 ```
 
 **Verify in logs:**
