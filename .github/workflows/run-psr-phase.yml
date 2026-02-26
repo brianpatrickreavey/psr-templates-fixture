@@ -1,0 +1,106 @@
+name: Run PSR Phase (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      phase:
+        required: true
+        type: string
+        description: 'Phase number (1-5)'
+      test_branch:
+        required: true
+        type: string
+        description: 'Test branch name from setup'
+      git_server_url:
+        required: true
+        type: string
+        description: 'Git server URL from setup'
+    outputs:
+      tag:
+        value: ${{ jobs.run.outputs.tag }}
+      version:
+        value: ${{ jobs.run.outputs.version }}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      UV_VENV: /tmp/venv
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    outputs:
+      tag: ${{ steps.psr.outputs.tag }}
+      version: ${{ steps.psr.outputs.version }}
+    steps:
+      - name: Load phase configuration
+        id: phase-config
+        run: |
+          config=$(cat .github/workflows/phase-config.json)
+          phase_config=$(echo "$config" | jq -r ".phases[\"${{ inputs.phase }}\"]")
+          version=$(echo "$phase_config" | jq -r '.version')
+          title=$(echo "$phase_config" | jq -r '.title')
+          force=$(echo "$phase_config" | jq -r '.force')
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "title=$title" >> $GITHUB_OUTPUT
+          echo "force=$force" >> $GITHUB_OUTPUT
+
+      - name: Checkout fixture repository from Gitea
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ inputs.test_branch }}
+          token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
+          github-server-url: ${{ inputs.git_server_url }}
+          fetch-depth: 25
+
+      - name: Install uv
+        uses: ./.github/actions/install-uv
+
+      - name: Set up venv
+        uses: ./.github/actions/setup-venv
+
+      - name: Install dev dependencies
+        uses: ./.github/actions/install-dev-dependencies
+
+      - name: Generate commits (Phase ${{ inputs.phase }})
+        uses: ./.github/actions/generate-and-push-commits
+        with:
+          phase: '${{ inputs.phase }}'
+          branch: ${{ inputs.test_branch }}
+          git-url: ${{ inputs.git_server_url }}/${{ github.repository_owner }}
+
+      - name: Run psr_prepare (Phase ${{ inputs.phase }})
+        run: |
+          source /tmp/venv/bin/activate
+          psr-prepare
+
+      - name: Run PSR (Phase ${{ inputs.phase }} - ${{ steps.phase-config.outputs.title }})
+        id: psr
+        uses: ./.github/actions/run-psr
+        with:
+          mode: ${{ env.GITEA_TOKEN && 'act' || 'github' }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: ${{ steps.phase-config.outputs.force != 'null' && steps.phase-config.outputs.force || '' }}
+
+      - name: Upload CHANGELOG (GitHub only)
+        if: ${{ !env.GITEA_TOKEN && steps.psr.outputs.tag }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ steps.psr.outputs.tag }} CHANGELOG.md --clobber
+
+      - name: Build and upload Kodi artifacts (Phase ${{ inputs.phase }})
+        uses: ./.github/actions/consolidated-kodi-zip
+        with:
+          kodi_project_name: script.module.example
+          kodi_directory: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          phase: 'phase-${{ inputs.phase }}'
+
+      - name: Publish Kodi addon to release (Phase ${{ inputs.phase }})
+        uses: ./.github/actions/consolidated-kodi-publish-to-release
+        with:
+          kodi_project_name: script.module.example
+          version: ${{ steps.psr.outputs.version }}
+          tag: ${{ steps.psr.outputs.tag }}
+          phase: 'phase-${{ inputs.phase }}'
