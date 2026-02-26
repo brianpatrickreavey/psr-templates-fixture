@@ -15,10 +15,6 @@ on:
         required: true
         type: string
         description: 'Git server URL from setup'
-    secrets:
-      GITHUB_TOKEN:
-        required: true
-        description: 'GitHub token for authenticated operations'
     outputs:
       tag:
         value: ${{ jobs.run.outputs.tag }}
