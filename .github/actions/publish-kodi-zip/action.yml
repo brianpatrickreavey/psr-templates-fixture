@@ -13,6 +13,9 @@ inputs:
   phase:
     description: 'Phase identifier for artifact retrieval (phase-1, phase-2, phase-3)'
     required: true
+  github_token:
+    description: 'GitHub token for release upload'
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -22,6 +25,8 @@ runs:
         name: kodi-addon-zip-${{ inputs.phase }}
         path: artifacts
     - name: Upload ZIP to release
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
       run: |
         gh release upload ${{ inputs.tag }} artifacts/${{ inputs.kodi_project_name }}-${{ inputs.version }}.zip --clobber
       shell: bash

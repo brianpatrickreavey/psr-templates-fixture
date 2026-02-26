@@ -104,3 +104,4 @@ jobs:
           version: ${{ steps.psr.outputs.version }}
           tag: ${{ steps.psr.outputs.tag }}
           phase: 'phase-${{ inputs.phase }}'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
