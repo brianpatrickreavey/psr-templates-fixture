@@ -1,4 +1,4 @@
-.PHONY: ci-simulate ci-simulate-consolidated ci-simulate-consolidated-gitea start-gitea restart-gitea stop-gitea clean-tags clean-releases clean-tags-and-releases clean test unzip-artifacts
+.PHONY: ci-simulate-consolidated-gitea start-gitea restart-gitea stop-gitea clean-tags clean-releases clean-tags-and-releases clean test unzip-artifacts
 
 # Gitea configuration
 GITEA_CONTAINER = act-gitea-local
@@ -30,36 +30,6 @@ unzip-artifacts:
 	done
 	@echo "Artifacts extracted to .artifacts/"
 
-# Simulate CI with act
-ci-simulate:
-	@timestamp=$$(date +%Y%m%d-%H%M%S); \
-	mkdir -p .artifacts/$$timestamp; \
-	echo "Running CI simulation (artifacts: .artifacts/$$timestamp)"; \
-	act repository_dispatch \
-	  --artifact-server-path ".artifacts/$$timestamp" \
-	  -W .github/workflows/test-harness-act.yml \
-	  -e .act/event.json \
-	  --container-architecture linux/amd64 \
-	  --env GITHUB_RUN_ID="$$timestamp" \
-	  | tee .artifacts/$$timestamp/ci-simulate.log; \
-	echo "Artifacts stored in .artifacts/$$timestamp"; \
-	echo "Log file: .artifacts/$$timestamp/ci-simulate.log"
-
-# Simulate CI with consolidated workflow
-ci-simulate-consolidated:
-	@timestamp=$$(date +%Y%m%d-%H%M%S); \
-	mkdir -p .artifacts/$$timestamp; \
-	echo "Running consolidated CI simulation (artifacts: .artifacts/$$timestamp)"; \
-	act repository_dispatch \
-	  --artifact-server-path ".artifacts/$$timestamp" \
-	  -W .github/workflows/test-harness-consolidated.yml \
-	  -e .act/event.json \
-	  --container-architecture linux/amd64 \
-	  --env ACT_RUN_ID="act-test-run-$$timestamp" \
-	  | tee .artifacts/$$timestamp/ci-simulate-consolidated.log; \
-	echo "Artifacts stored in .artifacts/$$timestamp"; \
-	echo "Log file: .artifacts/$$timestamp/ci-simulate-consolidated.log"
-
 # Start local Gitea server
 start-gitea:
 	@bash ./tools/docker-gitea-start.sh
@@ -83,7 +53,7 @@ clean-gitea: stop-gitea
 populate-gitea:
 	@bash ./tools/populate-gitea.sh
 
-# Simulate CI with consolidated-with-gitea workflow (local Gitea server)
+# Simulate CI with test harness workflow (local Gitea server for 5-phase testing)
 ci-simulate-consolidated-gitea:
 	@timestamp=$$(date +%Y%m%d-%H%M%S); \
 	mkdir -p .artifacts/$$timestamp; \
@@ -113,10 +83,10 @@ ci-simulate-consolidated-gitea:
 	fi; \
 	event_file=".act/event-$$timestamp.json"; \
 	cat .act/event.json | jq ".client_payload.run_id = \"act-test-run-$$timestamp\"" > "$$event_file"; \
-	echo "Running consolidated-with-gitea CI simulation (artifacts: .artifacts/$$timestamp)"; \
+	echo "Running test harness CI simulation (artifacts: .artifacts/$$timestamp)"; \
 	act repository_dispatch \
 	  --artifact-server-path ".artifacts/$$timestamp" \
-	  -W .github/workflows/test-harness-consolidated-with-gitea.yml \
+	  -W .github/workflows/test-harness.yml \
 	  -e "$$event_file" \
 	  --container-architecture linux/amd64 \
 	  --env GITEA_TOKEN="$$gitea_token" \

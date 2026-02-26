@@ -1,6 +1,6 @@
 # Cleanup and Refactor Plan
 
-**Status:** In Progress - 2 of 4 tasks completed  
+**Status:** In Progress - 3 of 4 tasks completed
 **Last Updated:** 2026-02-26
 
 ## Overview
@@ -47,27 +47,34 @@ Successfully converted `run-psr-phase.yml` from reusable workflow to composite a
 
 ### 2. Update architecture.md in psr-templates with 5-Phase Design
 
-**Status:** Not Started
+**Status:** ✅ COMPLETED
 **Priority:** MEDIUM - Documentation completeness
+**Completed:** 2026-02-26
 
-**What:**
-1. Open `/home/bpreavey/Code/psr-templates/docs/development/architecture.md`
-2. Find or create "Multi-Phase Release Testing" section
-3. Update to reflect 5 phases (not 3):
-   - Phase 1: 2× `feat:` → v0.1.0
-   - Phase 2: 1× `fix:` + 1× `feat:` → v0.2.0 (feature precedence)
-   - Phase 3: 1× `fix:` + 1× `feat:` + force major → v1.0.0
-   - Phase 4: 2× `docs:` → v1.0.0 (no bump)
-   - Phase 5: 1× `fix:` + 1× `docs:` → v1.0.1 (fix precedence)
-4. Add "Testing with `act` and Gitea (Local CI)" section explaining:
-   - Why local testing matters
-   - How to run locally
-   - Gitea service integration
+**Summary:**
+Successfully updated [psr-templates/docs/development/architecture.md](../docs/development/architecture.md) with comprehensive 5-phase design documentation.
 
-**Acceptance Criteria:**
+**What Was Done:**
+1. ✅ Updated "Multi-Phase Release Testing" section with detailed per-phase breakdown:
+   - Phase 1: 2× `feat:` → v0.1.0 (tests basic feature versioning)
+   - Phase 2: 1× `fix:` + 1× `feat:` → v0.2.0 (tests feature precedence)
+   - Phase 3: 1× `fix:` + 1× `feat:` + force major → v1.0.0 (tests override)
+   - Phase 4: 2× `docs:` → v1.0.0 (tests docs filtering, no bump)
+   - Phase 5: 1× `fix:` + 1× `docs:` → v1.0.1 (tests fix precedence)
+   - Each phase documents: commits, expected version, what it tests
+2. ✅ Enhanced "Local Testing with `act` and Gitea" section with:
+   - Why local testing matters (safety, speed, reproducibility, cost)
+   - Setup requirements (act, Docker, jq)
+   - How auto-detection works (ACT env var, URL switching, Gitea service)
+   - Running tests locally (clean, simulate commands, verbose)
+   - Output expectations and monitoring progress
+   - Key gotchas (image download, cleanup time, resource needs)
+   - Full validation with zero GitHub interaction statement
+
+**Acceptance Criteria Met:**
 - ✅ Architecture doc reflects current 5-phase reality
-- ✅ Semver precedence rules documented
-- ✅ Local testing approach documented
+- ✅ Semantic versioning precedence rules documented
+- ✅ Local testing approach fully documented with practical guidance
 
 ---
 
@@ -133,9 +140,9 @@ Listed in old TODO.md, may address if time:
 ## Rollout Order
 
 1. **✅ COMPLETED:** Task 1 (Refactor composite) - Step names now clear in logs
-2. **NEXT:** Task 2 (Update docs) - Document 5-phase design in psr-templates architecture.md
+2. **✅ COMPLETED:** Task 2 (Update docs) - Architecture.md updated with 5-phase design
 3. **✅ COMPLETED:** Task 3 (Archive) - Obsolete docs removed
-4. **PENDING:** Task 4 (Consolidate workflows) - Reduce workflow file clutter, establish canonical workflow
+4. **NEXT:** Task 4 (Consolidate workflows) - Reduce workflow file clutter, establish canonical workflow
 
 ---
 
@@ -145,7 +152,7 @@ After completing all tasks:
 
 - [x] Local ACT test passes all 5 phases with correct versions (TASK 1 ✅)
 - [x] GitHub Actions run shows readable step names (TASK 1 ✅)
-- [ ] architecture.md reflects 5-phase design (TASK 2 - IN PROGRESS)
+- [x] architecture.md reflects 5-phase design (TASK 2 ✅)
 - [x] Planning docs organized/archived (TASK 3 ✅)
 - [ ] Single canonical workflow file in place (TASK 4 - PENDING)
 - [ ] Obsolete workflow files deleted (TASK 4 - PENDING)
