@@ -171,6 +171,8 @@ jobs:
 
       - name: Run post-PSR tests
         uses: ./.github/actions/run-post-psr-tests
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Clean up test branch
         if: always()

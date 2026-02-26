@@ -1,9 +1,16 @@
 name: 'Run Post-PSR Tests'
 description: 'Run post-PSR integration tests'
+inputs:
+  github_token:
+    description: 'GitHub token for authenticated operations'
+    required: false
+    default: ''
 runs:
   using: 'composite'
   steps:
     - name: Run post-PSR integration tests
+      env:
+        GH_TOKEN: ${{ inputs.github_token || github.token }}
       run: |
         source /tmp/venv/bin/activate
         if [ "$ACT" = "true" ]; then
