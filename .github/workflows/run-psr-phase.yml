@@ -80,8 +80,8 @@ jobs:
           echo "=== Current branch ==="
           git branch -v
           echo ""
-          echo "=== Commit count since origin/main ==="
-          git rev-list --count origin/main..HEAD
+          echo "=== All remotes ==="
+          git remote -v
           echo ""
           echo "=== Last 20 commits ==="
           git log --oneline -20
