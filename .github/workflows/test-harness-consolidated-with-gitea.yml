@@ -216,6 +216,9 @@ jobs:
       tag: ${{ steps.run-psr-phase.outputs.tag }}
       version: ${{ steps.run-psr-phase.outputs.version }}
     steps:
+      - name: Checkout workflow repository
+        uses: actions/checkout@v4
+
       - name: Run PSR Phase 5
         id: run-psr-phase
         uses: ./.github/actions/run-psr-phase
