@@ -75,6 +75,20 @@ jobs:
           source /tmp/venv/bin/activate
           psr-prepare
 
+      - name: Debug - Show git log for PSR analysis (Phase ${{ inputs.phase }})
+        run: |
+          echo "=== Current branch ==="
+          git branch -v
+          echo ""
+          echo "=== Commit count since origin/main ==="
+          git rev-list --count origin/main..HEAD
+          echo ""
+          echo "=== Last 20 commits ==="
+          git log --oneline -20
+          echo ""
+          echo "=== Detailed commit messages (last 5) ==="
+          git log --format="%H %s" -5
+
       - name: Run PSR (Phase ${{ inputs.phase }} - ${{ steps.phase-config.outputs.title }})
         id: psr
         uses: ./.github/actions/run-psr
