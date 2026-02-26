@@ -1,6 +1,6 @@
 # Cleanup and Refactor Plan
 
-**Status:** Active - Final cleanup items remaining  
+**Status:** In Progress - 2 of 3 tasks completed  
 **Last Updated:** 2026-02-26
 
 ## Overview
@@ -13,30 +13,35 @@ Consolidation of remaining tasks after workflow refactoring and test harness sta
 
 ### 1. Refactor run-psr-phase.yml: Workflow → Composite Action
 
-**Status:** Not Started  
+**Status:** ✅ COMPLETED  
 **Priority:** HIGH - Improves logging and architectural consistency
+**Completed:** 2026-02-26
 
-**Why:** 
-- Current reusable workflow creates "UNKNOWN STEP" logs (poor debugging)
-- You have established composite action pattern in `.github/actions/`
-- Sequential-by-design flow doesn't need job-level isolation
-- Composite step names provide clarity (e.g., "Run PSR (Phase 5 - Patch Release)")
+**Summary:**
+Successfully converted `run-psr-phase.yml` from reusable workflow to composite action. All 5 phases execute correctly with proper step logging and no "UNKNOWN STEP" messages.
 
-**What:**
-1. Create `.github/actions/run-psr-phase/action.yml` as composite
-2. Move all steps from `run-psr-phase.yml` workflow job → composite steps
-3. Update `test-harness-consolidated-with-gitea.yml`:
-   - Replace 5 phase job calls with single job calling composite 5 times in sequence
-   - Pass `phase` input to composite per iteration
-4. Delete `run-psr-phase.yml` (reusable workflow)
-5. Test locally with `make ci-simulate-consolidated-gitea`
-6. Verify GitHub Actions run shows proper step names (not "UNKNOWN STEP")
+**Commits:**
+- c686441: Initial refactoring - Create composite action, update workflow, delete reusable workflow
+- fae5605: Fix checkout steps in phase jobs and post-release-tests condition
+- adc7f63: Fix composite action secrets handling and input types
+- 3322dbd: Fix missing checkout step in phase-5
 
-**Acceptance Criteria:**
-- ✅ Logs show readable step names per phase
-- ✅ All 5 phases complete with correct versions (0.1.0, 0.2.0, 1.0.0, 1.0.0, 1.0.1)
-- ✅ Pre/post-release tests still pass
-- ✅ Cleanup job executes
+**Key Fixes Applied:**
+1. Added checkout step to each phase job (composite actions need workspace)
+2. Pass `github_token` as input (composite can't access `secrets` context)
+3. Removed `type: string` from inputs (not supported in composite actions)
+4. Removed `if: always()` from post-release-tests (should only run if all phases succeed)
+
+**Testing Results:**
+- ✅ Local ACT: All 5 phases completed with correct versions (v0.1.0 → v0.2.0 → v1.0.0 → v1.0.0 → v1.0.1)
+- ✅ GitHub Actions: All 5 phases completed with same version progression
+- ✅ Step names visible (no "UNKNOWN STEP" messages)
+- ✅ Error handling works: post-release-tests skips on upstream failures
+
+**Files Changed:**
+- Created: `.github/actions/run-psr-phase/action.yml`
+- Modified: `.github/workflows/test-harness-consolidated-with-gitea.yml`
+- Deleted: `.github/workflows/run-psr-phase.yml`
 
 ---
 
@@ -68,23 +73,19 @@ Consolidation of remaining tasks after workflow refactoring and test harness sta
 
 ### 3. Archive/Remove Obsolete Planning Documents
 
-**Status:** Not Started  
+**Status:** ✅ COMPLETED  
 **Priority:** LOW - Cleanup
+**Completed:** 2026-02-26
 
-**What:**
-1. **WORKFLOW-CONSOLIDATION-PLAN.md** - Archive (superseded by consolidated-with-gitea approach)
-2. **ACT-GITEA-PLAN.md** - Archive (implementation complete, now reference docs)
-3. **TODO.md** - Either consolidate into this plan or archive
+**Summary:**
+Obsolete planning documents removed from repo root as part of earlier cleanup (commit 2a6b05c).
 
-**How:**
-- Move to `.archived/` directory
-- Add marker: "# ARCHIVED - See CLEANUP-AND-REFACTOR-PLAN.md for current tasks"
-- Keep for historical reference but out of main workflow
+**Files Deleted:**
+- WORKFLOW-CONSOLIDATION-PLAN.md
+- ACT-GITEA-PLAN.md
+- TODO.md
 
-**Acceptance Criteria:**
-- ✅ Repo root cleaned up (fewer .md files)
-- ✅ Archived docs still accessible for reference
-- ✅ No confusion about which doc is current
+These were superseded by CLEANUP-AND-REFACTOR-PLAN.md which consolidates remaining tasks.
 
 ---
 
@@ -102,18 +103,18 @@ Listed in old TODO.md, may address if time:
 
 ## Rollout Order
 
-1. **First:** Task 1 (Refactor composite) - Most impactful, enables clearer logs
-2. **Second:** Task 2 (Update docs) - Documentation
-3. **Third:** Task 3 (Archive) - Cleanup
+1. **✅ COMPLETED:** Task 1 (Refactor composite) - Step names now clear in logs
+2. **NEXT:** Task 2 (Update docs) - Document 5-phase design in psr-templates architecture.md
+3. **✅ COMPLETED:** Task 3 (Archive) - Obsolete docs removed
 
 ---
 
 ## Validation Checklist
 
-After completing tasks:
+After completing all tasks:
 
-- [ ] Local ACT test passes all 5 phases with correct versions
-- [ ] GitHub Actions run shows readable step names
-- [ ] architecture.md reflects 5-phase design
-- [ ] Planning docs organized/archived
-- [ ] No functionality broken
+- [x] Local ACT test passes all 5 phases with correct versions (TASK 1 ✅)
+- [x] GitHub Actions run shows readable step names (TASK 1 ✅)
+- [ ] architecture.md reflects 5-phase design (TASK 2 - IN PROGRESS)
+- [x] Planning docs organized/archived (TASK 3 ✅)
+- [x] No functionality broken (verified across both test runs)
