@@ -1,6 +1,6 @@
 # Cleanup and Refactor Plan
 
-**Status:** In Progress - 3 of 4 tasks completed
+**Status:** In Progress - 4 of 4 tasks completed (all tasks complete)
 **Last Updated:** 2026-02-26
 
 ## Overview
@@ -98,30 +98,44 @@ These were superseded by CLEANUP-AND-REFACTOR-PLAN.md which consolidates remaini
 
 ### 4. Consolidate Workflows
 
-**Status:** Not Started
+**Status:** ✅ COMPLETED
 **Priority:** MEDIUM - Workflow organization
+**Completed:** 2026-02-26
 
-**What:**
-1. Consolidate to single workflow: `test-harness-consolidated-with-gitea.yml` is now the default
-2. Delete obsolete workflows:
-   - `test-harness.yml` (original test harness)
-   - `test-harness-act.yml` (ACT-specific variant)
-   - `test-harness-consolidated.yml` (prior consolidation attempt)
-   - Check for any references/documentation before deletion
-3. Delete helper workflows (verify no active references):
-   - `test-hello.yml`
-   - `shell-test.yml`
-4. Rename/clean `test-harness-consolidated-with-gitea.yml`:
-   - Rename to `.github/workflows/test-harness.yml` (canonical name)
-   - Update workflow title from "PSR Template Test Harness (Consolidated with Gitea)" to "PSR Template Test Harness"
-   - Simplify comments - remove "consolidated" and "with-gitea" language (it's now the standard)
+**Summary:**
+Successfully consolidated to single canonical workflow. Deleted 6 obsolete workflows and established `.github/workflows/test-harness.yml` as the single source of truth for all PSR test harness execution.
 
-**Acceptance Criteria:**
-- ✅ Single canonical workflow file (test-harness.yml)
-- ✅ All obsolete test workflows deleted
-- ✅ Helper workflows (test-hello, shell-test) deleted
+**What Was Done:**
+1. ✅ Deleted obsolete workflows:
+   - test-harness.yml (original, marked deprecated)
+   - test-harness-act.yml (ACT-specific variant)
+   - test-harness-consolidated.yml (prior consolidation)
+   - test-harness-consolidated copy.yml (backup)
+   - test-hello.yml (helper workflow)
+   - shell-test.yml (helper workflow)
+2. ✅ Renamed test-harness-consolidated-with-gitea.yml → test-harness.yml
+3. ✅ Updated workflow title to canonical: "PSR Template Test Harness"
+4. ✅ Updated references:
+   - Fixture Makefile: Updated ci-simulate-consolidated-gitea target, removed obsolete ci-simulate and ci-simulate-consolidated targets
+   - psr-templates Makefile: Updated 3 workflow references to new canonical name
+   - Documentation: Updated testing.md, environment.md with correct test commands
+   - Prompt files: Updated to reference canonical workflow
+5. ✅ Verified no broken references: All documentation updated, all Makefile targets corrected
+
+**Key Changes:**
+- Before: 6 workflow files (test-harness.yml, test-harness-act.yml, test-harness-consolidated.yml, test-harness-consolidated-with-gitea.yml, test-hello.yml, shell-test.yml, plus backup)
+- After: 2 workflow files (cleanup.yml for utility, test-harness.yml for main testing)
+- Single source of truth: test-harness.yml for local (via `make ci-simulate-consolidated-gitea`) and GitHub Actions (via dispatch)
+
+**Acceptance Criteria Met:**
+- ✅ Single canonical workflow file (test-harness.yml) established
+- ✅ All 6 obsolete test workflows deleted
 - ✅ No broken references in documentation or Makefiles
-- ✅ Workflow title reflects canonical status
+- ✅ Workflow title reflects canonical status (removed "Consolidated with Gitea")
+
+**Commits:**
+- ef6310e (psr-templates): Update documentation, Makefile references
+- 4c215c4 (psr-templates-fixture): Delete workflows, update Makefile, update prompt docs
 
 ---
 
@@ -142,18 +156,20 @@ Listed in old TODO.md, may address if time:
 1. **✅ COMPLETED:** Task 1 (Refactor composite) - Step names now clear in logs
 2. **✅ COMPLETED:** Task 2 (Update docs) - Architecture.md updated with 5-phase design
 3. **✅ COMPLETED:** Task 3 (Archive) - Obsolete docs removed
-4. **NEXT:** Task 4 (Consolidate workflows) - Reduce workflow file clutter, establish canonical workflow
+4. **✅ COMPLETED:** Task 4 (Consolidate workflows) - Workflow file clutter eliminated, canonical test-harness.yml established
 
 ---
 
 ## Validation Checklist
 
-After completing all tasks:
+All tasks completed:
 
 - [x] Local ACT test passes all 5 phases with correct versions (TASK 1 ✅)
 - [x] GitHub Actions run shows readable step names (TASK 1 ✅)
 - [x] architecture.md reflects 5-phase design (TASK 2 ✅)
 - [x] Planning docs organized/archived (TASK 3 ✅)
-- [ ] Single canonical workflow file in place (TASK 4 - PENDING)
-- [ ] Obsolete workflow files deleted (TASK 4 - PENDING)
+- [x] Single canonical workflow file in place (TASK 4 ✅)
+- [x] Obsolete workflow files deleted (TASK 4 ✅)
 - [x] No functionality broken (verified across both test runs)
+
+**Overall Status: ✅ ALL CLEANUP TASKS COMPLETE**
