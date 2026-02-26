@@ -138,7 +138,7 @@ jobs:
 
   # Post-release tests
   post-release-tests:
-    needs: [setup, phase-5]
+    needs: [setup, phase-1, phase-2, phase-3, phase-4, phase-5]
     if: always()
     runs-on: ubuntu-latest
     env:
