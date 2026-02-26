@@ -44,11 +44,7 @@ jobs:
       - name: Compute branch name
         id: compute-branch
         run: |
-          if [ -n "$ACT" ]; then
-            TEST_BRANCH="ci/${ACT_RUN_ID}"
-          else
-            TEST_BRANCH="ci/${{ github.event.client_payload.run_id }}"
-          fi
+          TEST_BRANCH="ci/${{ github.event.client_payload.run_id }}"
           echo "test_branch=${TEST_BRANCH}" >> $GITHUB_OUTPUT
 
       - name: Test action (for debugging Gitea population)

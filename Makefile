@@ -111,13 +111,14 @@ ci-simulate-consolidated-gitea:
 	  echo "Waiting 5 seconds before continuing..."; \
 	  sleep 5; \
 	fi; \
+	event_file=".act/event-$$timestamp.json"; \
+	cat .act/event.json | jq ".client_payload.run_id = \"act-test-run-$$timestamp\"" > "$$event_file"; \
 	echo "Running consolidated-with-gitea CI simulation (artifacts: .artifacts/$$timestamp)"; \
 	act repository_dispatch \
 	  --artifact-server-path ".artifacts/$$timestamp" \
 	  -W .github/workflows/test-harness-consolidated-with-gitea.yml \
-	  -e .act/event.json \
+	  -e "$$event_file" \
 	  --container-architecture linux/amd64 \
-	  --env ACT_RUN_ID="act-test-run-$$timestamp" \
 	  --env GITEA_TOKEN="$$gitea_token" \
 	  | tee .artifacts/$$timestamp/ci-simulate-consolidated-gitea.log; \
 	exit_code=$$?; \
