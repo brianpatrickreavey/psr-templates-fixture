@@ -1,0 +1,59 @@
+# Pre-commit hooks configuration for psr-templates-fixture
+# See https://pre-commit.com for more information
+# Install hooks: pre-commit install
+# Run hooks: pre-commit run --all-files
+
+repos:
+  # YAML validation and linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: "v1.35.1"
+    hooks:
+      - id: yamllint
+        name: YAML linting
+        args:
+          - "--config-data={rules: {line-length: {max: 120}, indentation: {spaces: 2}}}"
+        types: [yaml]
+
+  # JSON validation
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: "v4.5.0"
+    hooks:
+      - id: check-json
+        name: Check JSON
+        types: [json]
+      - id: end-of-file-fixer
+        name: Fix end of file
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+      - id: check-yaml
+        name: Check YAML validity
+        args: ["--unsafe"]
+        types: [yaml]
+
+  # Python code formatting with black
+  - repo: https://github.com/psf/black
+    rev: "24.1.1"
+    hooks:
+      - id: black
+        name: Black code formatting
+        language_version: python3.9
+        types: [python]
+
+  # Python linting with flake8
+  - repo: https://github.com/PyCQA/flake8
+    rev: "7.0.0"
+    hooks:
+      - id: flake8
+        name: Flake8 linting
+        additional_dependencies:
+          - flake8-docstrings
+          - flake8-bugbear
+        types: [python]
+
+  # Sort imports
+  - repo: https://github.com/PyCQA/isort
+    rev: "5.13.2"
+    hooks:
+      - id: isort
+        name: isort import sorting
+        types: [python]
