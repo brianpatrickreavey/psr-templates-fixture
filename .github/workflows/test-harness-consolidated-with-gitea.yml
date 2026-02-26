@@ -50,8 +50,25 @@ jobs:
           TEST_BRANCH="ci/${{ github.event.client_payload.run_id }}"
           echo "test_branch=${TEST_BRANCH}" >> $GITHUB_OUTPUT
 
-      - name: Test action (for debugging Gitea population)
-        uses: ./.github/actions/test-hello
+      - name: Configure git for branch operations
+        run: |
+          git config user.name "CI Setup"
+          git config user.email "setup@ci.local"
+
+      - name: Create and checkout test branch
+        run: |
+          git checkout -b ${{ steps.compute-branch.outputs.test_branch }}
+
+      - name: Squash test branch commits into single commit
+        run: |
+          # Squash all development commits into one clean commit
+          # This reduces PSR parse time by eliminating hundreds of test commits
+          git reset --soft origin/main
+          git commit -m "Test fixture setup for CI run ${{ github.event.client_payload.run_id }}"
+
+      - name: Push test branch to remote
+        run: |
+          git push -u origin ${{ steps.compute-branch.outputs.test_branch }}
 
   pre-release-tests:
     runs-on: ubuntu-latest
@@ -62,20 +79,14 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     steps:
-      - name: Checkout fixture repository from Gitea
+      - name: Checkout test branch from Gitea
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
+          ref: ${{ needs.setup.outputs.test_branch }}
           token: ${{ env.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
           github-server-url: ${{ needs.setup.outputs.git_server_url }}
-          fetch-depth: 25
-
-      - name: Create and push test branch to Gitea
-        run: |
-          git config user.name "Gitea Setup"
-          git config user.email "setup@gitea.local"
-          git checkout -b ${{ needs.setup.outputs.test_branch }}
-          git push -u origin ${{ needs.setup.outputs.test_branch }}
+          fetch-depth: 0
 
       - name: Install uv
         uses: ./.github/actions/install-uv
