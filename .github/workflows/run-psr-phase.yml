@@ -42,6 +42,10 @@ jobs:
           github-server-url: ${{ inputs.git_server_url }}
           fetch-depth: 25
 
+      - name: Fetch all tags
+        run: |
+          git fetch --tags --force
+
       - name: Load phase configuration
         id: phase-config
         run: |
