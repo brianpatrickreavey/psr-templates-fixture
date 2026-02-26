@@ -116,6 +116,9 @@ jobs:
       tag: ${{ steps.run-psr-phase.outputs.tag }}
       version: ${{ steps.run-psr-phase.outputs.version }}
     steps:
+      - name: Checkout workflow repository
+        uses: actions/checkout@v4
+
       - name: Run PSR Phase 1
         id: run-psr-phase
         uses: ./.github/actions/run-psr-phase
@@ -137,6 +140,9 @@ jobs:
       tag: ${{ steps.run-psr-phase.outputs.tag }}
       version: ${{ steps.run-psr-phase.outputs.version }}
     steps:
+      - name: Checkout workflow repository
+        uses: actions/checkout@v4
+
       - name: Run PSR Phase 2
         id: run-psr-phase
         uses: ./.github/actions/run-psr-phase
@@ -158,6 +164,9 @@ jobs:
       tag: ${{ steps.run-psr-phase.outputs.tag }}
       version: ${{ steps.run-psr-phase.outputs.version }}
     steps:
+      - name: Checkout workflow repository
+        uses: actions/checkout@v4
+
       - name: Run PSR Phase 3
         id: run-psr-phase
         uses: ./.github/actions/run-psr-phase
@@ -179,6 +188,9 @@ jobs:
       tag: ${{ steps.run-psr-phase.outputs.tag }}
       version: ${{ steps.run-psr-phase.outputs.version }}
     steps:
+      - name: Checkout workflow repository
+        uses: actions/checkout@v4
+
       - name: Run PSR Phase 4
         id: run-psr-phase
         uses: ./.github/actions/run-psr-phase
@@ -206,12 +218,9 @@ jobs:
         with:
           phase: '5'
           test_branch: ${{ needs.setup.outputs.test_branch }}
-          git_server_url: ${{ needs.setup.outputs.git_server_url }}
-
-  # Post-release tests
+          git_server_url: ${{ needs.setup.outputs.git_server_url }}  # Post-release tests
   post-release-tests:
     needs: [setup, phase-1, phase-2, phase-3, phase-4, phase-5]
-    if: always()
     runs-on: ubuntu-latest
     env:
       UV_VENV: /tmp/venv
@@ -259,7 +268,7 @@ jobs:
   #       For ACT mode: Use `make clean-tags-and-releases` Makefile target instead.
   cleanup:
     needs: [setup, post-release-tests]
-    if: ${{ github.event.client_payload.cleanup_after && always() }}
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Checkout fixture repo
